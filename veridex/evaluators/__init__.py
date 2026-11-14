@@ -7,6 +7,7 @@ from veridex.evaluators.deterministic import DeterministicEvaluator
 from veridex.evaluators.similarity import SimilarityEvaluator
 from veridex.evaluators.safety import SafetyEvaluator
 from veridex.evaluators.judge import LLMJudgeEvaluator
+from veridex.evaluators.code_and_sql import CodeAndSqlEvaluator
 
 
 class EvaluatorRegistry:
@@ -16,6 +17,7 @@ class EvaluatorRegistry:
         self.deterministic = DeterministicEvaluator()
         self.similarity = SimilarityEvaluator()
         self.safety = SafetyEvaluator()
+        self.code_sql = CodeAndSqlEvaluator()
         self.judge = LLMJudgeEvaluator(judge_provider=judge_provider)
 
     def evaluate(
@@ -52,6 +54,14 @@ class EvaluatorRegistry:
         }:
             return self.safety.evaluate(assertion, output, test_case_result, context)
 
+        elif a_type in {
+            AssertionType.PYTHON_SYNTAX,
+            AssertionType.VALID_SQL,
+            AssertionType.SQL_SAFETY,
+            AssertionType.JSON_PATH,
+        }:
+            return self.code_sql.evaluate(assertion, output, test_case_result, context)
+
         elif a_type == AssertionType.LLM_JUDGE:
             return self.judge.evaluate(assertion, output, test_case_result, context)
 
@@ -63,6 +73,7 @@ __all__ = [
     "DeterministicEvaluator",
     "SimilarityEvaluator",
     "SafetyEvaluator",
+    "CodeAndSqlEvaluator",
     "LLMJudgeEvaluator",
     "EvaluatorRegistry",
 ]

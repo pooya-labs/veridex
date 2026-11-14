@@ -5,11 +5,13 @@ from veridex.providers.base import BaseProvider, ProviderResponse
 from veridex.providers.mock import MockProvider
 from veridex.providers.openai_provider import OpenAIProvider
 from veridex.providers.gemini_provider import GeminiProvider
+from veridex.providers.http_provider import HttpEndpointProvider
 
 
 def get_provider(
     provider_name: str,
     model: Optional[str] = None,
+    endpoint_url: Optional[str] = None,
     **kwargs: Any,
 ) -> BaseProvider:
     """Factory function to instantiate an LLM provider."""
@@ -21,8 +23,13 @@ def get_provider(
         return OpenAIProvider(model=model, **kwargs)
     elif name in {"gemini", "google"}:
         return GeminiProvider(model=model, **kwargs)
+    elif name in {"http", "rest", "webhook", "api", "endpoint"}:
+        target_url = endpoint_url or kwargs.get("url")
+        if not target_url:
+            raise ValueError("Endpoint URL must be specified when using HTTP provider.")
+        return HttpEndpointProvider(endpoint_url=target_url, **kwargs)
 
-    raise ValueError(f"Unsupported provider: '{provider_name}'. Supported: mock, openai, gemini, ollama.")
+    raise ValueError(f"Unsupported provider: '{provider_name}'. Supported: mock, openai, gemini, http.")
 
 
 __all__ = [
@@ -31,5 +38,6 @@ __all__ = [
     "MockProvider",
     "OpenAIProvider",
     "GeminiProvider",
+    "HttpEndpointProvider",
     "get_provider",
 ]
