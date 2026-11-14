@@ -8,6 +8,7 @@ from veridex.evaluators.similarity import SimilarityEvaluator
 from veridex.evaluators.safety import SafetyEvaluator
 from veridex.evaluators.judge import LLMJudgeEvaluator
 from veridex.evaluators.code_and_sql import CodeAndSqlEvaluator
+from veridex.evaluators.rag import RagGroundednessEvaluator
 
 
 class EvaluatorRegistry:
@@ -18,6 +19,7 @@ class EvaluatorRegistry:
         self.similarity = SimilarityEvaluator()
         self.safety = SafetyEvaluator()
         self.code_sql = CodeAndSqlEvaluator()
+        self.rag = RagGroundednessEvaluator()
         self.judge = LLMJudgeEvaluator(judge_provider=judge_provider)
 
     def evaluate(
@@ -62,6 +64,12 @@ class EvaluatorRegistry:
         }:
             return self.code_sql.evaluate(assertion, output, test_case_result, context)
 
+        elif a_type in {
+            AssertionType.FAITHFULNESS,
+            AssertionType.ANSWER_RELEVANCE,
+        }:
+            return self.rag.evaluate(assertion, output, test_case_result, context)
+
         elif a_type == AssertionType.LLM_JUDGE:
             return self.judge.evaluate(assertion, output, test_case_result, context)
 
@@ -74,6 +82,7 @@ __all__ = [
     "SimilarityEvaluator",
     "SafetyEvaluator",
     "CodeAndSqlEvaluator",
+    "RagGroundednessEvaluator",
     "LLMJudgeEvaluator",
     "EvaluatorRegistry",
 ]
