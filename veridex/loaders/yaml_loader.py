@@ -17,12 +17,24 @@ class SuiteLoader:
     def load_from_source(cls, source: Union[str, Path]) -> TestSuite:
         source_str = str(source).strip()
 
+        # Handle raw YAML/JSON string directly
+        if "\n" in source_str or (source_str.startswith("{") and source_str.endswith("}")):
+            return cls.load_from_string(source_str)
+
         # Handle remote URL
         if source_str.startswith("http://") or source_str.startswith("https://"):
             return cls.load_from_url(source_str)
 
         # Handle local file
         return cls.load_from_file(source)
+
+    @classmethod
+    def load_from_string(cls, content: str, base_dir: Optional[Path] = None) -> TestSuite:
+        """Parses a test suite definition directly from a YAML or JSON string."""
+        raw_data = yaml.safe_load(content)
+        if not isinstance(raw_data, dict):
+            raise ValueError("Invalid suite format: expected a dictionary root.")
+        return cls.parse_suite_dict(raw_data, base_dir=base_dir)
 
     @classmethod
     def load_from_url(cls, url: str) -> TestSuite:
