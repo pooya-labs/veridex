@@ -32,6 +32,10 @@ class AssertionType(str, enum.Enum):
     SQL_SAFETY = "sql_safety"
     JSON_PATH = "json_path"
 
+    # RAG & Groundedness checks
+    FAITHFULNESS = "faithfulness"
+    ANSWER_RELEVANCE = "answer_relevance"
+
     # Model-Assisted checks
     LLM_JUDGE = "llm_judge"
 

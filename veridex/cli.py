@@ -11,6 +11,8 @@ from veridex.core.runner import TestRunner
 from veridex.core.reporter import ConsoleReporter, JsonReporter, MarkdownReporter
 from veridex.core.html_reporter import HtmlReporter
 from veridex.core.diff import SuiteComparator
+from veridex.core.matrix import MatrixRunner
+from veridex.core.fuzzer import SuiteFuzzer
 from veridex.loaders.yaml_loader import SuiteLoader
 
 
@@ -41,6 +43,19 @@ def create_parser() -> argparse.ArgumentParser:
     # Command: validate
     val_parser = subparsers.add_parser("validate", help="Validate test suite syntax and assertion schemas.")
     val_parser.add_argument("suite", type=str, help="Path to test suite file.")
+
+    # Command: matrix
+    mat_parser = subparsers.add_parser("matrix", help="Run benchmark matrix comparing multiple models.")
+    mat_parser.add_argument("suite", type=str, help="Path or URL to test suite file.")
+    mat_parser.add_argument("-m", "--models", nargs="+", required=True, help="List of model names to benchmark.")
+    mat_parser.add_argument("-p", "--provider", type=str, help="Provider name (e.g. mock, openai, gemini).")
+
+    # Command: fuzz
+    fuzz_parser = subparsers.add_parser("fuzz", help="Generate stress-test fuzzed variants of test suite.")
+    fuzz_parser.add_argument("suite", type=str, help="Path to test suite file.")
+    fuzz_parser.add_argument("--modes", type=str, default="typo,casing,noise,adversarial", help="Comma-separated fuzzing modes.")
+    fuzz_parser.add_argument("-o", "--output", type=str, help="Path to save generated fuzzed suite YAML.")
+    fuzz_parser.add_argument("--run", action="store_true", help="Execute fuzzed suite immediately.")
 
     # Command: init
     init_parser = subparsers.add_parser("init", help="Scaffold a new Veridex starter suite.")
@@ -126,6 +141,44 @@ def handle_validate(args: argparse.Namespace, console: Console) -> int:
         return 1
 
 
+def handle_matrix(args: argparse.Namespace, console: Console) -> int:
+    try:
+        suite = SuiteLoader.load_from_source(args.suite)
+        models = args.models
+        console.print(f"[cyan]Running Benchmark Matrix across {len(models)} models...[/cyan]")
+        matrix = asyncio.run(MatrixRunner.run_matrix(suite, models=models, provider_name=args.provider))
+        MatrixRunner.print_matrix(matrix, console=console)
+        return 0
+    except Exception as e:
+        console.print(f"[bold red]Matrix run failed:[/bold red] {e}")
+        return 1
+
+
+def handle_fuzz(args: argparse.Namespace, console: Console) -> int:
+    try:
+        suite = SuiteLoader.load_from_source(args.suite)
+        modes = [m.strip() for m in args.modes.split(",") if m.strip()]
+        fuzzed = SuiteFuzzer.fuzz_suite(suite, modes=modes)
+        console.print(f"[green]✓ Generated fuzzed suite with {len(fuzzed.cases)} cases (expanded from {len(suite.cases)}).[/green]")
+
+        if args.output:
+            import yaml
+            dumped = yaml.safe_dump(fuzzed.model_dump(), sort_keys=False)
+            Path(args.output).write_text(dumped, encoding="utf-8")
+            console.print(f"[green]Saved fuzzed suite to:[/green] {args.output}")
+
+        if args.run:
+            runner = TestRunner()
+            res = asyncio.run(runner.run_suite(fuzzed))
+            reporter = ConsoleReporter(console=console)
+            reporter.print_summary(res)
+
+        return 0
+    except Exception as e:
+        console.print(f"[bold red]Fuzzing failed:[/bold red] {e}")
+        return 1
+
+
 def handle_init(args: argparse.Namespace, console: Console) -> int:
     target_dir = Path(args.dir)
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -187,6 +240,10 @@ def main() -> None:
         sys.exit(handle_compare(args, console))
     elif args.command == "validate":
         sys.exit(handle_validate(args, console))
+    elif args.command == "matrix":
+        sys.exit(handle_matrix(args, console))
+    elif args.command == "fuzz":
+        sys.exit(handle_fuzz(args, console))
     elif args.command == "init":
         sys.exit(handle_init(args, console))
     else:

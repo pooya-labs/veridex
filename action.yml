@@ -1,0 +1,51 @@
+name: 'Veridex LLM Evaluation'
+description: 'Continuous quality & regression testing harness for LLMs and AI Agents'
+author: 'Pooya Goodarzi'
+branding:
+  icon: 'shield-check'
+  color: 'cyan'
+
+inputs:
+  suite:
+    description: 'Path or remote URL to Veridex test suite (YAML or JSON)'
+    required: true
+  baseline:
+    description: 'Optional path to baseline JSON run for regression detection'
+    required: false
+  provider:
+    description: 'Override LLM provider (e.g. mock, openai, gemini, http)'
+    required: false
+  output-json:
+    description: 'Path to export JSON evaluation results'
+    required: false
+    default: 'veridex_result.json'
+  output-markdown:
+    description: 'Path to export Markdown report'
+    required: false
+    default: 'veridex_report.md'
+  fail-on-regression:
+    description: 'Fail step if regressions are detected when baseline is provided'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Veridex
+      shell: bash
+      run: pip install .
+
+    - name: Run Evaluation
+      shell: bash
+      run: |
+        cmd="veridex run \"${{ inputs.suite }}\" -o \"${{ inputs.output-json }}\" -m \"${{ inputs.output-markdown }}\""
+        if [ -n "${{ inputs.provider }}" ]; then
+          cmd="$cmd -p \"${{ inputs.provider }}\""
+        fi
+        eval $cmd
+
+    - name: Compare with Baseline
+      if: ${{ inputs.baseline != '' }}
+      shell: bash
+      run: |
+        veridex compare "${{ inputs.baseline }}" "${{ inputs.output-json }}"
