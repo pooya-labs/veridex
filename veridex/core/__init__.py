@@ -9,6 +9,7 @@ from veridex.core.models import (
 )
 from veridex.core.runner import TestRunner
 from veridex.core.reporter import ConsoleReporter, JsonReporter, MarkdownReporter
+from veridex.core.html_reporter import HtmlReporter
 from veridex.core.diff import SuiteComparator, RegressionDiff
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "ConsoleReporter",
     "JsonReporter",
     "MarkdownReporter",
+    "HtmlReporter",
     "SuiteComparator",
     "RegressionDiff",
 ]

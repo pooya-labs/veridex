@@ -9,6 +9,7 @@ from rich.console import Console
 from veridex.core.models import TestSuite
 from veridex.core.runner import TestRunner
 from veridex.core.reporter import ConsoleReporter, JsonReporter, MarkdownReporter
+from veridex.core.html_reporter import HtmlReporter
 from veridex.core.diff import SuiteComparator
 from veridex.loaders.yaml_loader import SuiteLoader
 
@@ -22,10 +23,12 @@ def create_parser() -> argparse.ArgumentParser:
 
     # Command: run
     run_parser = subparsers.add_parser("run", help="Execute an evaluation test suite.")
-    run_parser.add_argument("suite", type=str, help="Path to YAML or JSON test suite file.")
+    run_parser.add_argument("suite", type=str, help="Path or URL to YAML or JSON test suite file.")
     run_parser.add_argument("-o", "--output-json", type=str, help="Path to export JSON results.")
     run_parser.add_argument("-m", "--output-md", type=str, help="Path to export Markdown report.")
-    run_parser.add_argument("-p", "--provider", type=str, help="Override provider (e.g. mock, openai, gemini).")
+    run_parser.add_argument("-H", "--output-html", type=str, help="Path to export interactive HTML dashboard report.")
+    run_parser.add_argument("-p", "--provider", type=str, help="Override provider (e.g. mock, openai, gemini, http).")
+    run_parser.add_argument("-u", "--endpoint-url", type=str, help="Endpoint URL when using HTTP/webhook provider.")
     run_parser.add_argument("--model", type=str, help="Override model name.")
     run_parser.add_argument("-c", "--concurrency", type=int, help="Override concurrent execution limit.")
     run_parser.add_argument("--simulate-success", action="store_true", help="Simulate expected outputs when using mock provider.")
@@ -47,13 +50,10 @@ def create_parser() -> argparse.ArgumentParser:
 
 
 def handle_run(args: argparse.Namespace, console: Console) -> int:
-    suite_path = Path(args.suite)
-    if not suite_path.exists():
-        console.print(f"[bold red]Error:[/bold red] Suite file '{suite_path}' does not exist.")
-        return 1
+    suite_source = args.suite
 
     try:
-        suite = SuiteLoader.load_from_file(suite_path)
+        suite = SuiteLoader.load_from_source(suite_source)
     except Exception as e:
         console.print(f"[bold red]Failed to load suite:[/bold red] {e}")
         return 1
@@ -61,6 +61,8 @@ def handle_run(args: argparse.Namespace, console: Console) -> int:
     # Overrides
     if args.provider:
         suite.provider = args.provider
+    if args.endpoint_url:
+        suite.endpoint_url = args.endpoint_url
     if args.model:
         suite.model = args.model
     if args.concurrency:
@@ -89,6 +91,10 @@ def handle_run(args: argparse.Namespace, console: Console) -> int:
         Path(args.output_md).write_text(md_text, encoding="utf-8")
         console.print(f"[green]Saved Markdown report to:[/green] {args.output_md}")
 
+    if args.output_html:
+        HtmlReporter.export(result, args.output_html)
+        console.print(f"[green]Saved Interactive HTML report to:[/green] {args.output_html}")
+
     return 0 if result.passed_cases == result.total_cases else 2
 
 
@@ -110,9 +116,9 @@ def handle_compare(args: argparse.Namespace, console: Console) -> int:
 
 
 def handle_validate(args: argparse.Namespace, console: Console) -> int:
-    suite_path = Path(args.suite)
+    suite_source = args.suite
     try:
-        suite = SuiteLoader.load_from_file(suite_path)
+        suite = SuiteLoader.load_from_source(suite_source)
         console.print(f"[bold green]✓ Valid suite format:[/bold green] '{suite.name}' ({len(suite.cases)} test cases configured).")
         return 0
     except Exception as e:
@@ -124,7 +130,7 @@ def handle_init(args: argparse.Namespace, console: Console) -> int:
     target_dir = Path(args.dir)
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    starter_yaml = \"\"\"id: starter_eval
+    starter_yaml = """id: starter_eval
 name: Starter AI Quality & Guardrails Suite
 description: Baseline evaluation suite demonstrating deterministic, similarity, and safety checks.
 provider: mock
@@ -154,7 +160,7 @@ cases:
     assertions:
       - type: levenshtein_similarity
         threshold: 0.8
-\"\"\"
+"""
     output_file = target_dir / "veridex_starter.yaml"
     if output_file.exists():
         console.print(f"[yellow]File already exists at '{output_file}'. Aborted.[/yellow]")

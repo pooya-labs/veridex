@@ -5,12 +5,38 @@ import os
 import re
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
+import httpx
 import yaml
 from veridex.core.models import Assertion, AssertionType, TestCase, TestSuite
 
 
 class SuiteLoader:
-    """Loads and validates Veridex test suites from YAML or JSON definitions."""
+    """Loads and validates Veridex test suites from local files or remote URLs (YAML/JSON)."""
+
+    @classmethod
+    def load_from_source(cls, source: Union[str, Path]) -> TestSuite:
+        source_str = str(source).strip()
+
+        # Handle remote URL
+        if source_str.startswith("http://") or source_str.startswith("https://"):
+            return cls.load_from_url(source_str)
+
+        # Handle local file
+        return cls.load_from_file(source)
+
+    @classmethod
+    def load_from_url(cls, url: str) -> TestSuite:
+        """Fetches and parses a test suite definition directly from a remote HTTP(S) URL."""
+        with httpx.Client(timeout=30.0, follow_redirects=True) as client:
+            resp = client.get(url)
+            resp.raise_for_status()
+            content = resp.text
+
+        raw_data = yaml.safe_load(content)
+        if not isinstance(raw_data, dict):
+            raise ValueError(f"Invalid suite format from {url}: expected a dictionary root.")
+
+        return cls.parse_suite_dict(raw_data)
 
     @classmethod
     def load_from_file(cls, file_path: Union[str, Path]) -> TestSuite:
@@ -36,6 +62,8 @@ class SuiteLoader:
         description = data.get("description")
         provider = data.get("provider", "mock")
         model = data.get("model")
+        endpoint_url = data.get("endpoint_url") or data.get("url")
+        matrix_models = data.get("matrix_models") or data.get("models") or []
         temperature = data.get("temperature", 0.0)
         max_tokens = data.get("max_tokens", 1024)
         system_prompt = data.get("system_prompt")
@@ -84,6 +112,7 @@ class SuiteLoader:
                             value=a_val,
                             threshold=float(raw_a.get("threshold", 1.0)),
                             rubric=raw_a.get("rubric"),
+                            field_path=raw_a.get("field_path"),
                             weight=float(raw_a.get("weight", 1.0)),
                             name=raw_a.get("name"),
                         )
@@ -116,6 +145,8 @@ class SuiteLoader:
             description=description,
             provider=provider,
             model=model,
+            endpoint_url=endpoint_url,
+            matrix_models=matrix_models,
             temperature=temperature,
             max_tokens=max_tokens,
             system_prompt=system_prompt,

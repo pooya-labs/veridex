@@ -26,6 +26,12 @@ class AssertionType(str, enum.Enum):
     NO_PII = "no_pii"
     NO_PROMPT_INJECTION = "no_prompt_injection"
 
+    # Code & Syntax checks
+    PYTHON_SYNTAX = "python_syntax"
+    VALID_SQL = "valid_sql"
+    SQL_SAFETY = "sql_safety"
+    JSON_PATH = "json_path"
+
     # Model-Assisted checks
     LLM_JUDGE = "llm_judge"
 
@@ -35,6 +41,7 @@ class Assertion(BaseModel):
     value: Optional[Any] = None
     threshold: float = Field(default=1.0, ge=0.0, le=1.0)
     rubric: Optional[str] = None
+    field_path: Optional[str] = None
     weight: float = Field(default=1.0, gt=0.0)
     name: Optional[str] = None
 
@@ -60,6 +67,8 @@ class TestSuite(BaseModel):
     description: Optional[str] = None
     provider: str = "mock"
     model: Optional[str] = None
+    endpoint_url: Optional[str] = None
+    matrix_models: List[str] = Field(default_factory=list)
     temperature: Optional[float] = 0.0
     max_tokens: Optional[int] = 1024
     system_prompt: Optional[str] = None

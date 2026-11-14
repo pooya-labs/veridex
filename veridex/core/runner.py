@@ -35,6 +35,7 @@ class TestRunner:
         provider = self.provider or get_provider(
             provider_name=suite.provider,
             model=suite.model,
+            endpoint_url=suite.endpoint_url,
         )
 
         semaphore = asyncio.Semaphore(suite.concurrency)
