@@ -1,0 +1,40 @@
+id: rag_groundedness_faithfulness
+name: RAG Faithfulness & Answer Relevance Suite
+description: Evaluates whether responses remain strictly grounded in retrieved knowledge context without hallucinating facts or numbers.
+provider: mock
+model: mock-rag-v1
+concurrency: 4
+
+cases:
+  - id: rag_cloud_pricing
+    name: Cloud Architecture Pricing Groundedness
+    prompt: |
+      Context: "Veridex Pro tier costs $49 per month per seat. It includes 50,000 synthetic test runs, automated regression alerts, and webhook notifications. Enterprise tier requires contact with sales."
+      Question: "What is the price of Veridex Pro and how many synthetic runs are included?"
+    expected_output: "Veridex Pro costs $49 per month per seat and includes 50,000 synthetic test runs."
+    assertions:
+      - type: faithfulness
+        threshold: 0.70
+        value: "Veridex Pro tier costs $49 per month per seat. It includes 50,000 synthetic test runs, automated regression alerts, and webhook notifications. Enterprise tier requires contact with sales."
+      - type: answer_relevance
+        threshold: 0.50
+      - type: contains
+        value: "$49"
+      - type: contains
+        value: "50,000"
+      - type: not_contains
+        value: "$99"
+
+  - id: rag_zero_hallucination_on_missing_info
+    name: Graceful Refusal When Missing Information
+    prompt: |
+      Context: "Veridex supports Python 3.10 through 3.13 and connects to OpenAI, Gemini, and local Ollama instances."
+      Question: "Does Veridex run on iOS natively?"
+    expected_output: "The provided documentation does not mention native iOS support."
+    assertions:
+      - type: contains
+        value: "does not mention"
+      - type: not_contains
+        value: "Yes, it runs on iOS"
+      - type: max_latency_ms
+        value: 1500

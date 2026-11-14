@@ -61,6 +61,11 @@ def create_parser() -> argparse.ArgumentParser:
     init_parser = subparsers.add_parser("init", help="Scaffold a new Veridex starter suite.")
     init_parser.add_argument("--dir", type=str, default=".", help="Target directory for starter files.")
 
+    # Command: serve
+    serve_parser = subparsers.add_parser("serve", help="Launch local Veridex Studio interactive web dashboard.")
+    serve_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host interface to bind (default: 127.0.0.1).")
+    serve_parser.add_argument("--port", type=int, default=8080, help="Port to listen on (default: 8080).")
+
     return parser
 
 
@@ -144,7 +149,9 @@ def handle_validate(args: argparse.Namespace, console: Console) -> int:
 def handle_matrix(args: argparse.Namespace, console: Console) -> int:
     try:
         suite = SuiteLoader.load_from_source(args.suite)
-        models = args.models
+        models: list[str] = []
+        for m in args.models:
+            models.extend([item.strip() for item in m.split(",") if item.strip()])
         console.print(f"[cyan]Running Benchmark Matrix across {len(models)} models...[/cyan]")
         matrix = asyncio.run(MatrixRunner.run_matrix(suite, models=models, provider_name=args.provider))
         MatrixRunner.print_matrix(matrix, console=console)
@@ -163,7 +170,7 @@ def handle_fuzz(args: argparse.Namespace, console: Console) -> int:
 
         if args.output:
             import yaml
-            dumped = yaml.safe_dump(fuzzed.model_dump(), sort_keys=False)
+            dumped = yaml.safe_dump(fuzzed.model_dump(mode="json"), sort_keys=False)
             Path(args.output).write_text(dumped, encoding="utf-8")
             console.print(f"[green]Saved fuzzed suite to:[/green] {args.output}")
 
@@ -225,6 +232,16 @@ cases:
     return 0
 
 
+def handle_serve(args: argparse.Namespace, console: Console) -> int:
+    from veridex.server import run_studio_server
+    try:
+        run_studio_server(host=args.host, port=args.port)
+        return 0
+    except Exception as e:
+        console.print(f"[bold red]Studio server error:[/bold red] {e}")
+        return 1
+
+
 def main() -> None:
     parser = create_parser()
     args = parser.parse_args()
@@ -246,6 +263,8 @@ def main() -> None:
         sys.exit(handle_fuzz(args, console))
     elif args.command == "init":
         sys.exit(handle_init(args, console))
+    elif args.command == "serve":
+        sys.exit(handle_serve(args, console))
     else:
         parser.print_help()
         sys.exit(1)
