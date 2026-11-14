@@ -67,7 +67,16 @@ class RagGroundednessEvaluator(BaseEvaluator):
             )
 
         elif a_type == AssertionType.ANSWER_RELEVANCE:
-            score = self._calculate_relevance(output, input_prompt)
+            question_text = (
+                str(assertion.value)
+                if assertion.value
+                else context.get("variables", {}).get("question")
+            )
+            if not question_text:
+                q_match = re.search(r"Question:\s*[\"']?([^\"\n\r]+)[\"']?", input_prompt, re.IGNORECASE)
+                question_text = q_match.group(1).strip() if q_match else input_prompt
+
+            score = self._calculate_relevance(output, question_text)
             passed = score >= threshold
             return AssertionResult(
                 assertion_type=a_type.value,

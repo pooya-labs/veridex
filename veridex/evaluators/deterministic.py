@@ -130,7 +130,7 @@ class DeterministicEvaluator(BaseEvaluator):
                 )
 
         elif a_type == AssertionType.MAX_LATENCY_MS:
-            limit = float(assertion.value or 1000.0)
+            limit = float(assertion.value if assertion.value is not None else (assertion.threshold if assertion.threshold != 1.0 else 1000.0))
             latency = test_case_result.latency_ms if test_case_result else 0.0
             passed = latency <= limit
             score = 1.0 if passed else max(0.0, 1.0 - (latency - limit) / limit)

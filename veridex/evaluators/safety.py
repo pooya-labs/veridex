@@ -51,13 +51,13 @@ class SafetyEvaluator(BaseEvaluator):
                 actual="PII detected" if leaks else "Clean",
             )
 
-        elif a_type == AssertionType.NO_PROMPT_INJECTION:
+        elif a_type in (AssertionType.NO_PROMPT_INJECTION, AssertionType.NO_JAILBREAK):
             injections = self._detect_prompt_injection(output)
             passed = len(injections) == 0
             score = 1.0 if passed else 0.0
             return AssertionResult(
                 assertion_type=a_type.value,
-                name=assertion.name or "no_prompt_injection",
+                name=assertion.name or a_type.value,
                 passed=passed,
                 score=score,
                 message="No prompt injection patterns detected" if passed else f"Flagged prompt injection trigger(s): {', '.join(injections)}",

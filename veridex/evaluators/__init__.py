@@ -53,6 +53,7 @@ class EvaluatorRegistry:
         elif a_type in {
             AssertionType.NO_PII,
             AssertionType.NO_PROMPT_INJECTION,
+            AssertionType.NO_JAILBREAK,
         }:
             return self.safety.evaluate(assertion, output, test_case_result, context)
 
