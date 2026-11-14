@@ -4,252 +4,420 @@ import json
 from pathlib import Path
 from typing import Union
 from veridex.core.models import SuiteResult
+from veridex import __version__
 
 
 class HtmlReporter:
-    """Generates a standalone, interactive HTML dashboard report for evaluation runs."""
+    """Generates an enterprise-grade standalone, interactive HTML dashboard report for evaluation runs."""
 
     @classmethod
     def generate(cls, result: SuiteResult) -> str:
         data_json = result.model_dump_json()
-        pass_color = "#10b981" if result.pass_rate >= 0.8 else ("#f59e0b" if result.pass_rate >= 0.5 else "#ef4444")
+        pass_color = "#10b981" if result.pass_rate >= 0.8 else ("#f59e0b" if result.pass_rate >= 0.5 else "#f43f5e")
 
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Veridex Evaluation: {result.suite_name}</title>
+  <title>Veridex Report: {result.suite_name}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {{
-      --bg: #090d16;
-      --card-bg: #111827;
-      --border: rgba(255, 255, 255, 0.1);
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --cyan: #06b6d4;
-      --green: #10b981;
-      --red: #ef4444;
-      --yellow: #f59e0b;
+      --bg: #07090e;
+      --card-bg: rgba(16, 22, 35, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-hover: rgba(56, 189, 248, 0.35);
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --pass: #10b981;
+      --pass-bg: rgba(16, 185, 129, 0.12);
+      --fail: #f43f5e;
+      --fail-bg: rgba(244, 63, 94, 0.12);
+      --warn: #f59e0b;
     }}
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 30px 20px;
-      line-height: 1.5;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      padding: 2.5rem 1.5rem;
+      background-image: 
+        radial-gradient(circle at 10% 0%, rgba(56, 189, 248, 0.06) 0%, transparent 45%),
+        radial-gradient(circle at 90% 100%, rgba(129, 140, 248, 0.05) 0%, transparent 45%);
     }}
-    .container {{ max-width: 1080px; margin: 0 auto; }}
+    code, pre, .mono {{ font-family: 'JetBrains Mono', monospace; }}
+    .container {{ max-width: 1240px; margin: 0 auto; }}
+
     header {{
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 20px;
-      margin-bottom: 30px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
     }}
-    .logo {{ font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }}
-    .badge {{ background: var(--cyan); color: #000; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; }}
-    .meta-cards {{
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 30px;
+    .brand {{
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
     }}
-    .meta-card {{
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-    }}
-    .meta-title {{ font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }}
-    .meta-value {{ font-size: 1.7rem; font-weight: 800; }}
-    
-    /* Filters */
-    .filter-bar {{ display: flex; gap: 10px; margin-bottom: 24px; }}
-    .filter-btn {{
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 18px;
+    .brand-icon {{
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #0284c7, #6366f1);
       border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }}
-    .filter-btn.active {{ background: rgba(6, 182, 212, 0.2); border-color: var(--cyan); color: var(--cyan); }}
-    
-    /* Case Item */
-    .case-card {{
+    .brand-title {{
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+    }}
+    .badge {{
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }}
+
+    .kpi-grid {{
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }}
+    @media (max-width: 900px) {{ .kpi-grid {{ grid-template-columns: repeat(2, 1fr); }} }}
+    .kpi-card {{
       background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 14px;
-      overflow: hidden;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      backdrop-filter: blur(8px);
     }}
-    .case-header {{
+    .kpi-label {{
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }}
+    .kpi-val {{
+      font-size: 1.85rem;
+      font-weight: 800;
+    }}
+
+    .toolbar {{
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 20px;
-      cursor: pointer;
-      user-select: none;
+      gap: 1rem;
+      flex-wrap: wrap;
     }}
-    .case-title {{ display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.05rem; }}
-    .st-pass {{ color: var(--green); font-weight: 800; }}
-    .st-fail {{ color: var(--red); font-weight: 800; }}
-    .case-body {{
-      padding: 20px;
-      border-top: 1px solid var(--border);
-      background: #080b13;
-      display: none;
-      font-size: 0.9rem;
-    }}
-    .case-body.open {{ display: block; }}
-    .field-title {{ color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 4px; font-weight: 700; }}
-    .code-box {{
-      background: #000;
-      padding: 12px;
+    .input-box {{
+      background: #090e17;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 0.5rem 0.85rem;
       border-radius: 6px;
-      font-family: monospace;
       font-size: 0.85rem;
-      white-space: pre-wrap;
-      word-break: break-all;
-      margin-bottom: 16px;
+      font-family: inherit;
+      outline: none;
     }}
-    .assertions-table {{
+    .filter-tabs {{
+      display: flex;
+      gap: 4px;
+      background: #090e17;
+      padding: 3px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }}
+    .filter-pill {{
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+    }}
+    .filter-pill.active {{
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }}
+
+    .table-container {{
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }}
+    table {{
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-    }}
-    .assertions-table th, .assertions-table td {{
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--border);
       text-align: left;
+    }}
+    th {{
+      background: rgba(12, 16, 25, 0.95);
+      padding: 0.85rem 1.25rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--card-border);
+    }}
+    td {{
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.88rem;
+    }}
+    tr:last-child td {{ border-bottom: none; }}
+    .badge-status {{
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }}
+    .badge-pass {{ background: var(--pass-bg); color: var(--pass); border: 1px solid rgba(16, 185, 129, 0.25); }}
+    .badge-fail {{ background: var(--fail-bg); color: var(--fail); border: 1px solid rgba(244, 63, 94, 0.25); }}
+
+    /* Drawer */
+    .drawer-overlay {{
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+    }}
+    .drawer {{
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 620px;
+      max-width: 90vw;
+      background: #0d121c;
+      border-left: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 101;
+      padding: 2rem;
+      gap: 1.5rem;
+      overflow-y: auto;
+    }}
+    .code-box {{
+      background: #07090e;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.82rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }}
+    .btn {{
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
     }}
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="logo">VERIDEX <span style="font-weight:400; color:var(--text-muted);">| {result.suite_name}</span></div>
-      <div class="badge">{result.provider} ({result.model})</div>
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <div class="brand-title">{result.suite_name}</div>
+          <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 2px;">Provider: {result.provider} ({result.model}) • {result.timestamp}</div>
+        </div>
+      </div>
+      <div>
+        <span class="badge">Veridex v{__version__} Report</span>
+      </div>
     </header>
 
-    <div class="meta-cards">
-      <div class="meta-card">
-        <div class="meta-title">Pass Rate</div>
-        <div class="meta-value" style="color:{pass_color};">{result.pass_rate * 100:.1f}%</div>
-        <div style="font-size:0.8rem; color:var(--text-muted);">{result.passed_cases} passed / {result.total_cases} total</div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Pass Rate</div>
+        <div class="kpi-val" style="color: {pass_color};">{result.pass_rate * 100:.1f}%</div>
+        <div style="font-size:0.8rem; color:var(--text-dim); margin-top:4px;">Threshold Target: 80%</div>
       </div>
-      <div class="meta-card">
-        <div class="meta-title">Avg Latency</div>
-        <div class="meta-value">{result.average_latency_ms:.1f} <span style="font-size:1rem; font-weight:400;">ms</span></div>
+      <div class="kpi-card">
+        <div class="kpi-label">Tests Passed / Total</div>
+        <div class="kpi-val">{result.passed_cases} / {result.total_cases}</div>
+        <div style="font-size:0.8rem; color:var(--text-dim); margin-top:4px;">{result.failed_cases} failures</div>
       </div>
-      <div class="meta-card">
-        <div class="meta-title">Total Tokens</div>
-        <div class="meta-value">{result.total_tokens:,}</div>
+      <div class="kpi-card">
+        <div class="kpi-label">Average Latency</div>
+        <div class="kpi-val">{result.average_latency_ms:.1f}ms</div>
+        <div style="font-size:0.8rem; color:var(--text-dim); margin-top:4px;">Asynchronous execution</div>
       </div>
-      <div class="meta-card">
-        <div class="meta-title">Estimated Cost</div>
-        <div class="meta-value">${result.total_cost_usd:.4f}</div>
+      <div class="kpi-card">
+        <div class="kpi-label">Inference Tokens & Cost</div>
+        <div class="kpi-val">${result.total_cost_usd:.4f}</div>
+        <div style="font-size:0.8rem; color:var(--text-dim); margin-top:4px;">{result.total_tokens} total tokens</div>
       </div>
     </div>
 
-    <div class="filter-bar">
-      <button class="filter-btn active" onclick="filterCases('all')">All Cases ({result.total_cases})</button>
-      <button class="filter-btn" onclick="filterCases('passed')">Passed ({result.passed_cases})</button>
-      <button class="filter-btn" onclick="filterCases('failed')">Failed ({result.failed_cases})</button>
+    <div class="toolbar">
+      <input type="text" id="searchInput" class="input-box" placeholder="Search test cases..." oninput="renderTable()" style="width: 260px;">
+      <div class="filter-tabs">
+        <button class="filter-pill active" onclick="setFilter('all')">All ({result.total_cases})</button>
+        <button class="filter-pill" onclick="setFilter('pass')">Passed ({result.passed_cases})</button>
+        <button class="filter-pill" onclick="setFilter('fail')">Failed ({result.failed_cases})</button>
+      </div>
     </div>
 
-    <div id="cases-container"></div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px;">Status</th>
+            <th style="width:190px;">Case ID</th>
+            <th>Name & Prompt</th>
+            <th style="width:110px;">Latency</th>
+            <th style="width:90px;">Tokens</th>
+            <th style="width:120px;">Assertions</th>
+            <th style="width:80px; text-align:center;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div id="drawerTitle" style="font-size:1.1rem; font-weight:700;">Case Details</div>
+      <button class="btn" onclick="closeDrawer()">✕</button>
+    </div>
+    <div>
+      <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; margin-bottom:4px;">INPUT PROMPT</div>
+      <div class="code-box" id="drawerPrompt"></div>
+    </div>
+    <div>
+      <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; margin-bottom:4px;">MODEL OUTPUT</div>
+      <div class="code-box" id="drawerOutput"></div>
+    </div>
+    <div>
+      <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; margin-bottom:4px;">ASSERTION RESULTS</div>
+      <div id="drawerAssertions" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
   </div>
 
   <script>
     const data = {data_json};
+    let currentFilter = 'all';
 
-    function renderCases(filter) {{
-      const container = document.getElementById('cases-container');
-      container.innerHTML = '';
+    function setFilter(f) {{
+      currentFilter = f;
+      document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      renderTable();
+    }}
 
-      data.results.forEach((c, idx) => {{
-        if (filter === 'passed' && !c.passed) return;
-        if (filter === 'failed' && c.passed) return;
+    function renderTable() {{
+      const tbody = document.getElementById('tableBody');
+      const q = (document.getElementById('searchInput').value || '').toLowerCase();
+      tbody.innerHTML = '';
 
-        const card = document.createElement('div');
-        card.className = 'case-card';
+      const filtered = data.results.filter(c => {{
+        if (currentFilter === 'pass' && !c.passed) return false;
+        if (currentFilter === 'fail' && c.passed) return false;
+        if (q && !c.case_id.toLowerCase().includes(q) && !c.case_name.toLowerCase().includes(q)) return false;
+        return true;
+      }});
 
-        const statusClass = c.passed ? 'st-pass' : 'st-fail';
-        const statusText = c.passed ? '✓ PASS' : '✗ FAIL';
-        const passedA = c.assertion_results.filter(a => a.passed).length;
-        const totalA = c.assertion_results.length;
+      if (filtered.length === 0) {{
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:3rem; color:var(--text-dim);">No matching cases found.</td></tr>';
+        return;
+      }}
 
-        card.innerHTML = `
-          <div class="case-header" onclick="toggleCase(${{idx}})">
-            <div class="case-title">
-              <span class="${{statusClass}}">${{statusText}}</span>
-              <span>${{c.case_name}}</span>
-              <span style="font-size:0.8rem; color:var(--text-muted); font-family:monospace;">(${{c.case_id}})</span>
-            </div>
-            <div style="color:var(--text-muted); font-size:0.85rem;">
-              ${{c.latency_ms.toFixed(1)}}ms | ${{passedA}}/${{totalA}} assertions
-            </div>
-          </div>
-          <div class="case-body" id="body-${{idx}}">
-            <div class="field-title">Prompt</div>
-            <div class="code-box">${{c.input_prompt}}</div>
+      filtered.forEach(c => {{
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => openDrawer(c);
 
-            <div class="field-title">Completion Output</div>
-            <div class="code-box">${{c.output || '<empty>'}}</div>
+        const badge = c.passed
+          ? '<span class="badge-status badge-pass">✓ PASS</span>'
+          : '<span class="badge-status badge-fail">✗ FAIL</span>';
 
-            <div class="field-title">Assertions Breakdown</div>
-            <table class="assertions-table">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Type</th>
-                  <th>Diagnostic Message</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${{c.assertion_results.map(a => `
-                  <tr>
-                    <td style="color:${{a.passed ? 'var(--green)' : 'var(--red)'}}; font-weight:bold;">
-                      ${{a.passed ? 'PASS' : 'FAIL'}}
-                    </td>
-                    <td style="font-family:monospace;">${{a.assertion_type}}</td>
-                    <td>${{a.message}}</td>
-                  </tr>
-                `).join('')}}
-              </tbody>
-            </table>
-          </div>
+        const passA = c.assertion_results.filter(a => a.passed).length;
+
+        tr.innerHTML = `
+          <td>${{badge}}</td>
+          <td class="mono" style="color:var(--accent); font-weight:600;">${{c.case_id}}</td>
+          <td>
+            <div style="font-weight:600; color:#fff;">${{c.case_name}}</div>
+            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:2px;">${{c.input_prompt.substring(0, 70)}}...</div>
+          </td>
+          <td class="mono">${{c.latency_ms.toFixed(1)}}ms</td>
+          <td class="mono">${{c.token_usage.total_tokens || 0}}</td>
+          <td class="mono"><strong>${{passA}}</strong> / ${{c.assertion_results.length}}</td>
+          <td style="text-align:center;"><button class="btn">View</button></td>
         `;
-        container.appendChild(card);
+        tbody.appendChild(tr);
       }});
     }}
 
-    function toggleCase(idx) {{
-      const b = document.getElementById('body-' + idx);
-      b.classList.toggle('open');
+    function openDrawer(c) {{
+      document.getElementById('drawerTitle').innerText = c.case_name;
+      document.getElementById('drawerPrompt').innerText = c.input_prompt;
+      document.getElementById('drawerOutput').innerText = c.output;
+
+      const aBox = document.getElementById('drawerAssertions');
+      aBox.innerHTML = '';
+      c.assertion_results.forEach(a => {{
+        const el = document.createElement('div');
+        el.style.background = '#090e17';
+        el.style.border = `1px solid ${{a.passed ? 'rgba(16,185,129,0.25)' : 'rgba(244,63,94,0.3)'}}`;
+        el.style.borderRadius = '6px';
+        el.style.padding = '8px 12px';
+        el.innerHTML = `
+          <div style="display:flex; justify-content:space-between; font-weight:700; color:${{a.passed ? 'var(--pass)' : 'var(--fail)'}}; font-size:0.85rem;">
+            <span>${{a.passed ? '✓' : '✗'}} [${{a.assertion_type}}] ${{a.name || ''}}</span>
+            <span class="mono">score: ${{a.score}}</span>
+          </div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:3px;">${{a.message}}</div>
+        `;
+        aBox.appendChild(el);
+      }});
+
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('drawer').style.display = 'flex';
     }}
 
-    function filterCases(filter) {{
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-      renderCases(filter);
+    function closeDrawer() {{
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('drawer').style.display = 'none';
     }}
 
-    renderCases('all');
+    renderTable();
   </script>
 </body>
 </html>
-"""
-
-    @classmethod
-    def export(cls, result: SuiteResult, output_path: Union[str, Path]) -> None:
-        html = cls.generate(result)
-        path = Path(output_path).resolve()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(html, encoding="utf-8")
