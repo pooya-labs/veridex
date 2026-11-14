@@ -1,0 +1,31 @@
+id: structured_extraction_benchmark
+name: Structured Extraction & JSON Schema Benchmark
+description: Evaluates model ability to output strict schema-compliant JSON without hallucinated keys or markdown wrapper breakage.
+provider: mock
+model: mock-model-v1
+concurrency: 4
+
+cases:
+  - id: extract_billing_query
+    name: Billing Dispute Ticket
+    prompt: "Extract ticket details from: 'My invoice #9921 for May was charged twice ($45.00 each) on user 1024. Fix this urgently!'"
+    expected_output: '{"ticket_id": "TCK-9921", "category": "billing", "urgency": "high", "summary": "User double-charged on invoice 9921", "user_id": 1024}'
+    assertions:
+      - type: valid_json
+      - type: json_schema
+        schema_file: "./schema.json"
+      - type: contains
+        value: "billing"
+      - type: max_latency_ms
+        value: 1500
+
+  - id: extract_technical_query
+    name: Technical Bug Report
+    prompt: "Extract ticket details from: 'Database connection failed with error 500 on user 880.'"
+    expected_output: '{"ticket_id": "TCK-8801", "category": "technical", "urgency": "medium", "summary": "Database connection error 500", "user_id": 880}'
+    assertions:
+      - type: valid_json
+      - type: json_schema
+        schema_file: "./schema.json"
+      - type: max_tokens
+        value: 200

@@ -1,0 +1,35 @@
+id: rag_groundedness_suite
+name: RAG Groundedness & Hallucination Prevention Suite
+description: Tests whether retrieval-augmented generation stays strictly within provided reference context.
+provider: mock
+model: mock-model-v1
+concurrency: 5
+
+cases:
+  - id: rag_return_policy
+    name: Return Policy Accurate Answer
+    system_prompt: "Answer user questions using ONLY the context provided below. If context does not contain answer, say 'I cannot find that in the documentation.'"
+    prompt: |
+      Context: "Items can be returned within 30 days of delivery if unopened. Refunds are credited in 3 business days."
+      Question: "What is the return window and refund duration?"
+    expected_output: "Items can be returned within 30 days if unopened. Refunds take 3 business days."
+    assertions:
+      - type: contains
+        value: "30 days"
+      - type: contains
+        value: "3 business days"
+      - type: not_contains
+        value: "60 days"
+      - type: levenshtein_similarity
+        threshold: 0.70
+
+  - id: rag_out_of_bounds_rejection
+    name: Reject Unmentioned Questions
+    system_prompt: "Answer using ONLY the provided context. If unknown, say 'NOT_IN_CONTEXT'."
+    prompt: |
+      Context: "Orbit is an observability platform built with Go."
+      Question: "What database does Orbit use internally?"
+    expected_output: "NOT_IN_CONTEXT"
+    assertions:
+      - type: exact_match
+        value: "NOT_IN_CONTEXT"
