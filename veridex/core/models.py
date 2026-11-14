@@ -25,6 +25,7 @@ class AssertionType(str, enum.Enum):
     # Safety & Guardrail checks
     NO_PII = "no_pii"
     NO_PROMPT_INJECTION = "no_prompt_injection"
+    NO_JAILBREAK = "no_jailbreak"
 
     # Code & Syntax checks
     PYTHON_SYNTAX = "python_syntax"
@@ -43,7 +44,7 @@ class AssertionType(str, enum.Enum):
 class Assertion(BaseModel):
     type: AssertionType
     value: Optional[Any] = None
-    threshold: float = Field(default=1.0, ge=0.0, le=1.0)
+    threshold: float = Field(default=1.0, ge=0.0)
     rubric: Optional[str] = None
     field_path: Optional[str] = None
     weight: float = Field(default=1.0, gt=0.0)
