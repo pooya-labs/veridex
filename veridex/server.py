@@ -742,7 +742,17 @@ def _get_enterprise_studio_html() -> str:
           <div class="editor-pane">
             <div class="editor-title">
               <span>YAML Test Suite Definition</span>
-              <button class="btn btn-secondary" style="padding: 3px 8px; font-size:0.75rem;" onclick="validateYamlEditor()">Validate Schema</button>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <select id="synthTemplateSelect" style="padding: 2px 6px; font-size:0.75rem; background:#070a13; border:1px solid var(--card-border); color:#fff; border-radius:4px;">
+                  <option value="json">JSON Archetype</option>
+                  <option value="rag">RAG Faithfulness</option>
+                  <option value="safety">Safety Guard</option>
+                  <option value="sql">SQL Generation</option>
+                  <option value="general">General</option>
+                </select>
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size:0.75rem; color:var(--accent);" onclick="generateSyntheticInEditor()">✨ Synthesize</button>
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size:0.75rem;" onclick="validateYamlEditor()">Validate Schema</button>
+              </div>
             </div>
             <textarea id="yamlEditorText" class="code-area">id: dynamic_studio_eval
 name: Dynamic Studio Interactive Evaluation
@@ -1210,6 +1220,28 @@ cases:
       }}
     }}
 
+    async function generateSyntheticInEditor() {{
+      const tpl = document.getElementById('synthTemplateSelect').value;
+      const out = document.getElementById('editorOutputBox');
+      out.innerText = 'Synthesizing evaluation test suite for ' + tpl + ' archetype...';
+      try {{
+        const resp = await fetch('/api/generate', {{
+          method: 'POST',
+          headers: {{ 'Content-Type': 'application/json' }},
+          body: JSON.stringify({{ template: tpl, topic: 'production_' + tpl, count: 3 }})
+        }});
+        const data = await resp.json();
+        if (data.yaml) {{
+          document.getElementById('yamlEditorText').value = data.yaml;
+          out.innerHTML = `<div style="color:var(--pass); font-weight:700;">✓ Synthesized: ${{data.name}}</div><div>Generated ${{data.cases_count}} cases with assertions. Click 'Run This Suite' to execute.</div>`;
+        }} else {{
+          out.innerText = 'Synthesis failed: ' + (data.error || 'Unknown error');
+        }}
+      }} catch (e) {{
+        out.innerText = 'Synthesis error: ' + e;
+      }}
+    }}
+
     /* Tab 5: Run History & Diff */
     async function refreshRunHistory() {{
       const container = document.getElementById('historyTableContainer');
@@ -1329,6 +1361,8 @@ class VeridexStudioHandler(BaseHTTPRequestHandler):
             self._handle_validate(payload)
         elif path == "/api/diff":
             self._handle_diff(payload)
+        elif path == "/api/generate":
+            self._handle_generate(payload)
         else:
             self.send_response(404)
             self.end_headers()
@@ -1421,6 +1455,25 @@ class VeridexStudioHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self._send_error(400, str(e))
 
+    def _handle_generate(self, payload: Dict[str, Any]) -> None:
+        try:
+            from veridex.core.generator import SuiteGenerator
+            topic = payload.get("topic", "general")
+            template = payload.get("template", "json")
+            count = int(payload.get("count", 3))
+            suite = SuiteGenerator.generate_suite(topic=topic, template=template, count=count)
+            yaml_str = SuiteGenerator.to_yaml(suite)
+            resp = {
+                "status": "ok",
+                "id": suite.id,
+                "name": suite.name,
+                "cases_count": len(suite.cases),
+                "yaml": yaml_str,
+            }
+            self._send_response_data(200, "application/json", json.dumps(resp).encode("utf-8"))
+        except Exception as e:
+            self._send_error(400, str(e))
+
     def _discover_suites(self) -> List[Dict[str, Any]]:
         suites = []
         for path in Path("examples").glob("**/suite.yaml"):
@@ -1456,7 +1509,7 @@ def run_studio_server(host: str = "127.0.0.1", port: int = 8080) -> None:
     print(f"• Evaluation Runner & Filter Engine")
     print(f"• Model Matrix Leaderboard")
     print(f"• Adversarial Fuzzer & Stress Lab")
-    print(f"• In-Browser YAML Suite Studio")
+    print(f"• In-Browser YAML Suite Studio & Synthetic Generator")
     print(f"• Regression Diff & Historical Baselines")
     print(f"Press Ctrl+C to stop.\n")
     try:
