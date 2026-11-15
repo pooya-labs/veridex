@@ -12,6 +12,7 @@ from veridex.cli import (
     handle_matrix,
     handle_fuzz,
     handle_generate,
+    handle_compare,
 )
 
 
@@ -94,3 +95,53 @@ def test_cli_generate(tmp_path: Path):
     output = console.export_text()
     assert "Synthesized test suite" in output
     assert "VERIDEX EVALUATION REPORT" in output
+
+
+def test_cli_compare_with_markdown_export(tmp_path: Path):
+    import json
+    console = Console(record=True)
+    base_file = tmp_path / "base.json"
+    curr_file = tmp_path / "curr.json"
+    md_out = tmp_path / "diff.md"
+
+    base_data = {
+        "suite_id": "test",
+        "suite_name": "Test",
+        "provider": "mock",
+        "model": "gpt-4o",
+        "total_cases": 1,
+        "passed_cases": 1,
+        "failed_cases": 0,
+        "pass_rate": 1.0,
+        "average_latency_ms": 100.0,
+        "total_tokens": 100,
+        "total_cost_usd": 0.001,
+        "results": [
+            {"case_id": "c1", "case_name": "C1", "passed": True, "input_prompt": "", "output": ""}
+        ]
+    }
+    curr_data = dict(base_data)
+    curr_data["passed_cases"] = 0
+    curr_data["failed_cases"] = 1
+    curr_data["pass_rate"] = 0.0
+    curr_data["results"] = [
+        {"case_id": "c1", "case_name": "C1", "passed": False, "input_prompt": "", "output": ""}
+    ]
+
+    base_file.write_text(json.dumps(base_data), encoding="utf-8")
+    curr_file.write_text(json.dumps(curr_data), encoding="utf-8")
+
+    args = argparse.Namespace(
+        baseline=str(base_file),
+        current=str(curr_file),
+        output_md=str(md_out),
+        github_summary=False,
+        fail_on_regression=True,
+    )
+
+    ret = handle_compare(args, console)
+    assert ret == 3  # regression detected
+    assert md_out.exists()
+    md_text = md_out.read_text(encoding="utf-8")
+    assert "Veridex LLM Evaluation & Regression Diff" in md_text
+    assert "Regressions Detected" in md_text

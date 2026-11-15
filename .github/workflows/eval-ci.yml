@@ -1,0 +1,48 @@
+name: Veridex AI Reliability & Regression Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  veridex-eval:
+    name: LLM Regression & Safety Evaluation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Veridex and Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run Test Suites
+        run: |
+          python -m pytest tests/
+
+      - name: Run Veridex Starter Suite
+        run: |
+          veridex run examples/01_structured_extraction/suite.yaml \
+            --simulate-success \
+            --output-json candidate_eval.json \
+            --output-html veridex_report.html \
+            --output-md veridex_summary.md
+
+      - name: Upload Evaluation Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: veridex-evaluation-reports
+          path: |
+            veridex_report.html
+            candidate_eval.json
+            veridex_summary.md
