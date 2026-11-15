@@ -11,6 +11,7 @@ from veridex.cli import (
     handle_init,
     handle_matrix,
     handle_fuzz,
+    handle_generate,
 )
 
 
@@ -74,3 +75,22 @@ def test_cli_fuzz(tmp_path: Path):
     ret = handle_fuzz(args, console)
     assert ret == 0
     assert Path(out_file).exists()
+
+
+def test_cli_generate(tmp_path: Path):
+    console = Console(record=True)
+    out_file = str(tmp_path / "gen_suite.yaml")
+    args = argparse.Namespace(
+        topic="customer_support",
+        template="json",
+        cases=2,
+        output=out_file,
+        run=True,
+        simulate_success=True,
+    )
+    ret = handle_generate(args, console)
+    assert ret == 0
+    assert Path(out_file).exists()
+    output = console.export_text()
+    assert "Synthesized test suite" in output
+    assert "VERIDEX EVALUATION REPORT" in output

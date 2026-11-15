@@ -113,6 +113,22 @@ cases:
         fuzz_data = fuzz_resp.json()
         assert "total_cases" in fuzz_data
 
+        # 10. Test POST /api/generate
+        gen_resp = httpx.post(
+            f"{base_url}/api/generate",
+            json={
+                "topic": "billing",
+                "template": "json",
+                "count": 2,
+            },
+        )
+        assert gen_resp.status_code == 200
+        gen_data = gen_resp.json()
+        assert gen_data.get("status") == "ok"
+        assert gen_data.get("cases_count") == 2
+        assert "yaml" in gen_data
+        assert "billing" in gen_data["yaml"]
+
     finally:
         server.shutdown()
         server.server_close()
