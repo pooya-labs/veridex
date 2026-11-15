@@ -25,7 +25,15 @@ from veridex.evaluators import EvaluatorRegistry
 from veridex.providers import get_provider, BaseProvider, MockProvider
 from veridex.server import run_studio_server
 from veridex.sdk import assert_eval
-from veridex.integrations import GuardrailViolation, guard, async_guard, monitor
+from veridex.integrations import (
+    GuardrailViolation,
+    guard,
+    async_guard,
+    monitor,
+    VeridexCallbackHandler,
+    VeridexTracer,
+    VeridexSpan,
+)
 
 __all__ = [
     "Assertion",
@@ -54,5 +62,8 @@ __all__ = [
     "guard",
     "async_guard",
     "monitor",
+    "VeridexCallbackHandler",
+    "VeridexTracer",
+    "VeridexSpan",
     "__version__",
 ]

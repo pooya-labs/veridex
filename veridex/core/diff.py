@@ -21,6 +21,9 @@ class RegressionDiff(BaseModel):
     unchanged_passed: List[str] = Field(default_factory=list)
     unchanged_failed: List[str] = Field(default_factory=list)
 
+    def to_markdown(self) -> str:
+        return SuiteComparator.to_markdown(self)
+
 
 class SuiteComparator:
     """Compares two evaluation runs to detect performance regressions and improvements."""
@@ -123,3 +126,55 @@ class SuiteComparator:
 
         if not diff.regressions and not diff.improvements:
             console.print("[dim]No changes in case pass/fail statuses between runs.[/dim]\n")
+
+    @classmethod
+    def to_markdown(cls, diff: RegressionDiff) -> str:
+        """Render a GitHub-flavored Markdown regression report suitable for PR comments and CI summaries."""
+        status_badge = "✅ **Passed — No Regressions**" if not diff.regressions else f"❌ **{len(diff.regressions)} Regressions Detected**"
+        rate_arrow = "▲" if diff.pass_rate_delta > 0 else ("▼" if diff.pass_rate_delta < 0 else "—")
+        lat_arrow = "▲" if diff.latency_delta_ms > 0 else ("▼" if diff.latency_delta_ms < 0 else "—")
+        cost_arrow = "▲" if diff.cost_delta_usd > 0 else ("▼" if diff.cost_delta_usd < 0 else "—")
+
+        md = [
+            "## 🔍 Veridex LLM Evaluation & Regression Diff",
+            f"**Status:** {status_badge}",
+            "",
+            "| Metric | Baseline | Current | Delta |",
+            "| :--- | :--- | :--- | :---: |",
+            f"| **Pass Rate** | `{diff.baseline_id}` | `{diff.current_id}` | **{rate_arrow} {diff.pass_rate_delta * 100:+.1f}%** |",
+            f"| **Avg Latency** | — | — | **{lat_arrow} {diff.latency_delta_ms:+.1f} ms** |",
+            f"| **Total Cost** | — | — | **{cost_arrow} ${diff.cost_delta_usd:+.4f}** |",
+            "",
+        ]
+
+        if diff.regressions:
+            md.extend([
+                f"### ⚠️ Regressions ({len(diff.regressions)})",
+                "> The following test cases previously PASSED in baseline but now FAILED in candidate:",
+                "",
+                "| Case ID | Baseline | Current | Diagnostic |",
+                "| :--- | :---: | :---: | :--- |",
+            ])
+            for cid in diff.regressions:
+                md.append(f"| `{cid}` | ✅ PASSED | ❌ FAILED | Assertion regression detected |")
+            md.append("")
+
+        if diff.improvements:
+            md.extend([
+                f"### 🎉 Improvements ({len(diff.improvements)})",
+                "> The following test cases previously FAILED in baseline but now PASSED in candidate:",
+                "",
+                "| Case ID | Baseline | Current |",
+                "| :--- | :---: | :---: |",
+            ])
+            for cid in diff.improvements:
+                md.append(f"| `{cid}` | ❌ FAILED | ✅ PASSED |")
+            md.append("")
+
+        if not diff.regressions and not diff.improvements:
+            md.extend([
+                "> ✨ **Clean Diff:** Case pass/fail status is identical across both evaluation runs.",
+                ""
+            ])
+
+        return "\n".join(md)
