@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests Passing](https://img.shields.io/badge/tests-40%20passed-brightgreen.svg)](https://github.com/pooya-labs/veridex/actions)
+[![Tests Passing](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)](https://github.com/pooya-labs/veridex/actions)
 [![Docs & Live Demo](https://img.shields.io/badge/docs-interactive%20demo-cyan.svg)](https://pooya-labs.github.io/veridex/)
 
 > High-Precision Evaluation, Regression Testing & Reliability Harness for LLMs and Applied AI Systems.
@@ -43,7 +43,7 @@ veridex/
 │   ├── cli.py                  # CLI (run, generate, matrix, fuzz, compare, serve, init)
 │   ├── server.py               # Veridex Enterprise Studio Web Server (5 modular tabs)
 │   ├── sdk.py                  # Programmatic Pytest integration (assert_eval)
-│   ├── integrations/           # Production runtime guardrails (@monitor, guard, async_guard)
+│   ├── integrations/           # Guardrails (@monitor, guard), LangChain & OpenTelemetry tracing
 │   ├── core/
 │   │   ├── models.py           # Pydantic v2 schemas (Suite, Case, Results, Assertions)
 │   │   ├── runner.py           # Concurrency-controlled async runner (asyncio.Semaphore)
@@ -58,7 +58,7 @@ veridex/
 │   └── loaders/                # Local, string, and remote (HTTP) test suite loaders
 ├── docs/                       # GitHub Pages live interactive playground
 ├── examples/                   # Production-ready test suites (01 through 05)
-└── tests/                      # Comprehensive unit test suite (40 tests, 100% pass)
+└── tests/                      # Comprehensive unit test suite (48 tests, 100% pass)
 ```
 
 ---
@@ -119,10 +119,55 @@ Generate adversarial perturbations (typos, casing, noise, jailbreak probes):
 veridex fuzz examples/03_agent_safety/suite.yaml --run
 ```
 
-### 8. Detect Regressions in CI/CD
+### 8. Detect Regressions & Gate CI/CD Pull Requests
+
+Compare baseline vs candidate runs, generate GitHub Flavored Markdown summaries for PR comments, and gate merges on regressions (exit code 3):
 
 ```bash
-veridex compare baseline.json candidate.json
+veridex compare baseline.json candidate.json \
+  --github-summary \
+  --output-md pr_diff.md \
+  --fail-on-regression
+```
+
+---
+
+## Integrations: LangChain & OpenTelemetry Tracing
+
+### LangChain Integration
+
+Plug `VeridexCallbackHandler` directly into any LangChain model or agent chain to validate outputs, track latencies, and prevent violations:
+
+```python
+from veridex import VeridexCallbackHandler, Assertion
+
+handler = VeridexCallbackHandler(
+    assertions=[
+        Assertion(type="valid_json"),
+        Assertion(type="no_pii"),
+    ],
+    raise_on_violation=True,
+)
+
+# Pass directly to LangChain model invocations:
+response = llm.invoke("Generate invoice payload", config={"callbacks": [handler]})
+print(handler.get_summary())
+```
+
+### OpenTelemetry GenAI Telemetry
+
+Capture structured OpenTelemetry spans with token counts, latency, and assertion status:
+
+```python
+from veridex import VeridexTracer
+
+tracer = VeridexTracer(service_name="payment-agent")
+
+with tracer.trace("fraud_evaluation", model="gpt-4o", provider="openai") as span:
+    span.set_attribute("gen_ai.request.temperature", 0.2)
+    # execute LLM logic ...
+
+tracer.export_jsonl("logs/genai_telemetry.jsonl")
 ```
 
 ---
