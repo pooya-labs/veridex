@@ -468,7 +468,10 @@
           <button class="tab-btn" onclick="switchTab('pii')">3. PII & Secret Guard</button>
           <button class="tab-btn" onclick="switchTab('injection')">4. Injection Defense</button>
           <button class="tab-btn" onclick="switchTab('fuzz')">5. Adversarial Fuzzing</button>
-          <button class="tab-btn" onclick="switchTab('studio')">6. Enterprise Studio Web UI</button>
+          <button class="tab-btn" onclick="switchTab('studio')">6. Enterprise Studio</button>
+          <button class="tab-btn" onclick="switchTab('generate')">7. ✨ Synthetic Suite Gen</button>
+          <button class="tab-btn" onclick="switchTab('guardrails')">8. 🛡️ Runtime Guardrails</button>
+          <button class="tab-btn" onclick="switchTab('cicd')">9. 🤖 CI/CD PR Gate</button>
         </div>
 
         <!-- Tab 1: JSON -->
@@ -639,6 +642,142 @@ Fuzzing Modes Applied:
           </div>
         </div>
 
+        <!-- Tab 7: Synthetic Suite Generator -->
+        <div id="tab-generate" class="tab-content">
+          <div style="background:#0c1019; border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+              <div>
+                <span style="font-weight:700; color:#fff; font-size:1.05rem;">Synthetic Golden Dataset &amp; Suite Generator</span>
+                <span style="color:var(--text-muted); font-size:0.85rem; margin-left:8px;">CLI: <code style="color:var(--cyan)">veridex generate -t finance --template json -n 5</code></span>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:16px;">
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">DOMAIN TOPIC</label>
+                <select id="gen-domain" style="width:100%; background:#111827; color:#fff; border:1px solid var(--border); padding:8px 12px; border-radius:6px; font-size:0.85rem;" onchange="updateGeneratedPreview()">
+                  <option value="ecommerce">E-Commerce &amp; Orders</option>
+                  <option value="finance" selected>Fintech &amp; Transactions</option>
+                  <option value="medical">Healthcare &amp; Triage</option>
+                  <option value="customer_support">SaaS Customer Support</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">ARCHETYPE TEMPLATE</label>
+                <select id="gen-template" style="width:100%; background:#111827; color:#fff; border:1px solid var(--border); padding:8px 12px; border-radius:6px; font-size:0.85rem;" onchange="updateGeneratedPreview()">
+                  <option value="json" selected>JSON Schema Extraction</option>
+                  <option value="rag">RAG Groundedness &amp; Faithfulness</option>
+                  <option value="safety">PII &amp; Secret Leaks Defense</option>
+                  <option value="sql">SQL Query &amp; Read-Only Safety</option>
+                  <option value="general">Conversational Similarity</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">TEST CASE COUNT</label>
+                <select id="gen-count" style="width:100%; background:#111827; color:#fff; border:1px solid var(--border); padding:8px 12px; border-radius:6px; font-size:0.85rem;" onchange="updateGeneratedPreview()">
+                  <option value="3">3 Calibrated Cases</option>
+                  <option value="5" selected>5 Calibrated Cases</option>
+                  <option value="10">10 Full Matrix Cases</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="demo-grid">
+            <div>
+              <p style="margin-bottom:8px; font-weight:600;">Synthesized YAML Test Suite:</p>
+              <div class="code-card">
+                <pre id="gen-yaml-preview" style="max-height:280px; overflow-y:auto;"></pre>
+              </div>
+              <button class="run-demo-btn" onclick="runGeneratedSuite()">Execute Synthesized Suite</button>
+            </div>
+            <div>
+              <p style="margin-bottom:8px; font-weight:600;">Automated Evaluation Pipeline Output:</p>
+              <div class="code-card" id="gen-eval-result" style="color:var(--text-muted); min-height:280px;">
+                Select archetype and click "Execute Synthesized Suite" to run the evaluation harness.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 8: Runtime Guardrails -->
+        <div id="tab-guardrails" class="tab-content">
+          <div style="background:#0c1019; border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px;">
+            <div style="margin-bottom:12px;">
+              <span style="font-weight:700; color:#fff; font-size:1.05rem;">Production Runtime Guardrails &amp; Decorator (@monitor)</span>
+              <p style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">Intercept non-compliant LLM outputs, secret leaks, and schema failures before they reach end-users.</p>
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">SIMULATE PRODUCTION INCIDENT SCENARIO</label>
+              <select id="guard-scenario" style="width:100%; max-width:480px; background:#111827; color:#fff; border:1px solid var(--border); padding:8px 12px; border-radius:6px; font-size:0.85rem;" onchange="updateGuardScenario()">
+                <option value="clean" selected>1. Compliant Output (Valid Schema &amp; Zero PII)</option>
+                <option value="pii_leak">2. High-Severity Leak: Leaked API Key &amp; Credit Card</option>
+                <option value="sql_injection">3. Security Breach: Destructive SQL Injection (DROP TABLE)</option>
+                <option value="rag_hallucination">4. Factual Drift: Hallucinated Medical Dosage</option>
+              </select>
+            </div>
+          </div>
+          <div class="demo-grid">
+            <div>
+              <p style="margin-bottom:8px; font-weight:600;">Live Production Code &amp; Model Output:</p>
+              <div class="code-card">
+                <pre id="guard-code-preview" style="max-height:280px; overflow-y:auto;"></pre>
+              </div>
+              <button class="run-demo-btn" onclick="runGuardDemo()">Trigger Runtime Guardrail</button>
+            </div>
+            <div>
+              <p style="margin-bottom:8px; font-weight:600;">Guardrail Interception Diagnostics:</p>
+              <div class="code-card" id="guard-result" style="color:var(--text-muted); min-height:280px;">
+                Click "Trigger Runtime Guardrail" to simulate real-time runtime evaluation and fallback interception.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 9: CI/CD PR Gate -->
+        <div id="tab-cicd" class="tab-content">
+          <div style="background:#0c1019; border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div>
+                <span style="font-weight:700; color:#fff; font-size:1.05rem;">Automated CI/CD Pull Request Regression Gate</span>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">Prevent prompt or model degradation from merging into production with automated diff gates.</p>
+              </div>
+              <div class="mono" style="font-size:0.8rem; color:var(--cyan); background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); padding:4px 10px; border-radius:6px;">
+                veridex compare base.json curr.json --github-summary
+              </div>
+            </div>
+          </div>
+          <div class="demo-grid">
+            <div>
+              <p style="margin-bottom:8px; font-weight:600;">GitHub Actions Workflow (.github/workflows/eval-ci.yml):</p>
+              <div class="code-card">
+                <pre style="color:#94a3b8; font-size:0.8rem; max-height:300px; overflow-y:auto;">name: LLM Regression Gate
+on: [pull_request]
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - run: pip install veridex
+      - name: Run Candidate Evaluation
+        run: veridex run suites/prod.yaml -o current.json
+      - name: Gate on Regression
+        run: |
+          veridex compare baseline.json current.json \
+            --github-summary \
+            --output-md pr_diff.md \
+            --fail-on-regression</pre>
+              </div>
+              <button class="run-demo-btn" onclick="runCicdDemo()">Simulate PR Regression Check</button>
+            </div>
+            <div>
+              <p style="margin-bottom:8px; font-weight:600;">Generated PR Comment &amp; Step Summary:</p>
+              <div class="code-card" id="cicd-result" style="color:var(--text-muted); min-height:300px;">
+                Click "Simulate PR Regression Check" to preview the GitHub Flavored Markdown summary and exit code gate.
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -755,6 +894,249 @@ Fuzzing Modes Applied:
 `;
       }
     }
+
+    const sampleYamls = {
+      finance: `version: "1.0"
+name: "Synthetic Fintech Transactions & KYC"
+provider: "gemini"
+model: "gemini-1.5-pro"
+cases:
+  - id: "syn_fin_01"
+    name: "Wire Transfer Extraction"
+    prompt: "Extract wire details from: 'Transfer $12,500 USD to IBAN DE89370400440532013000 for invoice 8821.'"
+    assertions:
+      - type: "valid_json"
+      - type: "json_schema"
+        schema:
+          type: "object"
+          required: ["amount", "currency", "iban", "invoice_id"]
+      - type: "no_pii"
+  - id: "syn_fin_02"
+    name: "KYC Sanction Risk Check"
+    prompt: "Review customer passport scan output and return risk tier."
+    assertions:
+      - type: "contains"
+        value: "risk_level"`,
+      ecommerce: `version: "1.0"
+name: "Synthetic E-Commerce Order Parsing"
+provider: "openai"
+model: "gpt-4o"
+cases:
+  - id: "syn_ecom_01"
+    name: "Cart Checkout Parsing"
+    prompt: "Customer wants 2x Quantum Noise Headphones (SKU: QN-99) delivered to 102 Market St."
+    assertions:
+      - type: "valid_json"
+      - type: "json_schema"
+        schema:
+          type: "object"
+          required: ["sku", "quantity", "shipping_address"]`,
+      medical: `version: "1.0"
+name: "Synthetic Healthcare Triage & HIPAA"
+provider: "gemini"
+model: "gemini-1.5-flash"
+cases:
+  - id: "syn_med_01"
+    name: "Patient Intake Triage"
+    prompt: "Patient reports acute chest pain with diaphoresis."
+    assertions:
+      - type: "no_pii"
+      - type: "not_contains"
+        value: "SSN:"
+      - type: "contains"
+        value: "EMERGENCY_TRIAGE_1"`,
+      customer_support: `version: "1.0"
+name: "Synthetic Support Ticket Categorization"
+provider: "mock"
+model: "mock-model"
+cases:
+  - id: "syn_supp_01"
+    name: "Urgent Billing Dispute"
+    prompt: "Double charged on subscription for team plan."
+    assertions:
+      - type: "valid_json"
+      - type: "contains"
+        value: "billing"`
+    };
+
+    function updateGeneratedPreview() {
+      const domainEl = document.getElementById('gen-domain');
+      if (!domainEl) return;
+      const domain = domainEl.value;
+      const baseYaml = sampleYamls[domain] || sampleYamls['finance'];
+      const previewEl = document.getElementById('gen-yaml-preview');
+      if (previewEl) previewEl.textContent = baseYaml;
+    }
+
+    function runGeneratedSuite() {
+      const res = document.getElementById('gen-eval-result');
+      const domain = document.getElementById('gen-domain').value;
+      const tpl = document.getElementById('gen-template').value;
+      const count = document.getElementById('gen-count').value;
+      res.innerHTML = `
+<div style="color:#10b981; font-weight:700; margin-bottom:8px; font-size:0.95rem;">
+  ✔ SYNTHESIS COMPLETE: Generated ${count} Golden Cases for [${domain.toUpperCase()}]
+</div>
+<div style="display:flex; gap:16px; margin-bottom:12px; font-size:0.8rem; color:#94a3b8;">
+  <div>Pass Rate: <span style="color:#10b981; font-weight:700;">100.0%</span></div>
+  <div>Latency: <span style="color:#38bdf8;">28.4ms</span></div>
+  <div>Archetype: <span style="color:#c084fc;">${tpl.toUpperCase()}</span></div>
+</div>
+<div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:8px;">
+  <div>• Case syn_01: <span style="color:#10b981;">PASSED (valid_json + schema matched)</span></div>
+  <div>• Case syn_02: <span style="color:#10b981;">PASSED (no_pii: Zero leaks detected)</span></div>
+  <div>• Case syn_03: <span style="color:#10b981;">PASSED (levenshtein: 0.94 score)</span></div>
+</div>
+<div style="margin-top:12px; font-size:0.8rem; color:#64748b;">
+  Exported to: <code>generated_${domain}_suite.yaml</code> | CLI: <code>veridex run generated_${domain}_suite.yaml</code>
+</div>
+`;
+    }
+
+    const guardScenarios = {
+      clean: `# Runtime Code
+@monitor(assertions=[
+    Assertion(type="no_pii"),
+    Assertion(type="valid_json")
+], fallback='{"status": "blocked", "reason": "guardrail_violation"}')
+async def create_user_profile(user_input: str):
+    return await llm.complete(user_input)
+
+# Model Output:
+'{"user_id": 9912, "name": "Jane Doe", "status": "active"}'`,
+      pii_leak: `# Runtime Code
+@monitor(assertions=[
+    Assertion(type="no_pii"),
+    Assertion(type="valid_json")
+], fallback='{"status": "blocked", "reason": "PII_OR_SECRET_LEAK_INTERCEPTED"}')
+async def get_customer_diagnostics(prompt: str):
+    return await llm.complete(prompt)
+
+# Model Output (VIOLATION):
+'{"email": "ceo@corp.internal", "aws_secret": "AKIAIOSFODNN7EXAMPLE", "card": "4532-0150-1234-5678"}'`,
+      sql_injection: `# Runtime Code
+@monitor(assertions=[
+    Assertion(type="read_only_sql"),
+    Assertion(type="not_contains", value="DROP TABLE")
+], fallback="SELECT 1 /* query blocked by security guardrail */;")
+async def generate_sql_report(query_prompt: str):
+    return await llm.complete(query_prompt)
+
+# Model Output (VIOLATION):
+'DROP TABLE customers; SELECT * FROM financial_records;'`,
+      rag_hallucination: `# Runtime Code
+clean_summary = guard(
+    output=rag_completion,
+    assertions=[
+        Assertion(type="faithfulness", threshold=0.75),
+        Assertion(type="contains", value="10mg once daily")
+    ],
+    context={"retrieved_chunk": "Prescribe Amoxicillin 10mg once daily for 7 days."},
+    fallback="Unable to verify dosage. Consult physician."
+)`
+    };
+
+    function updateGuardScenario() {
+      const scEl = document.getElementById('guard-scenario');
+      if (!scEl) return;
+      const sc = scEl.value;
+      const previewEl = document.getElementById('guard-code-preview');
+      if (previewEl) previewEl.textContent = guardScenarios[sc] || guardScenarios['clean'];
+    }
+
+    function runGuardDemo() {
+      const sc = document.getElementById('guard-scenario').value;
+      const res = document.getElementById('guard-result');
+      if (sc === 'clean') {
+        res.innerHTML = `
+<div style="color:#10b981; font-weight:700; margin-bottom:8px;">✔ GUARD PASSED: Production Output Safe (1.2ms)</div>
+<div style="color:#94a3b8; font-size:0.85rem;">
+  • <code>no_pii</code>: No confidential emails, cards, or API tokens.<br>
+  • <code>valid_json</code>: Valid JSON schema confirmed.<br>
+  • Streamed safely to client API consumer.
+</div>
+`;
+      } else if (sc === 'pii_leak') {
+        res.innerHTML = `
+<div style="color:#ef4444; font-weight:700; margin-bottom:8px;">⚡ INTERCEPTED: GuardrailViolation Raised (0.9ms)</div>
+<div style="color:#f59e0b; font-size:0.85rem; margin-bottom:8px;">
+  • <strong>High-Severity Leak:</strong> Credit Card (Luhn Valid) & AWS Secret Detected!<br>
+  • <strong>Automated Fallback Triggered:</strong> Model output dropped before leaving boundary.
+</div>
+<div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); padding:8px; border-radius:6px; font-size:0.8rem; color:#fca5a5;">
+  Fallback Delivered to Client:<br>
+  <code>{"status": "blocked", "reason": "PII_OR_SECRET_LEAK_INTERCEPTED"}</code>
+</div>
+`;
+      } else if (sc === 'sql_injection') {
+        res.innerHTML = `
+<div style="color:#ef4444; font-weight:700; margin-bottom:8px;">⚡ INTERCEPTED: Destructive Query Blocked (0.6ms)</div>
+<div style="color:#f59e0b; font-size:0.85rem; margin-bottom:8px;">
+  • <strong>Rule Triggered:</strong> <code>DROP TABLE</code> found in query output.<br>
+  • <strong>Sanitization:</strong> Database transaction protected.
+</div>
+<div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); padding:8px; border-radius:6px; font-size:0.8rem; color:#fca5a5;">
+  Fallback Delivered to DB Driver:<br>
+  <code>SELECT 1 /* query blocked by security guardrail */;</code>
+</div>
+`;
+      } else {
+        res.innerHTML = `
+<div style="color:#ef4444; font-weight:700; margin-bottom:8px;">⚡ INTERCEPTED: Hallucinated Medical Dosage (1.4ms)</div>
+<div style="color:#f59e0b; font-size:0.85rem; margin-bottom:8px;">
+  • <strong>Faithfulness Score:</strong> 0.32 &lt; 0.75 threshold.<br>
+  • <strong>Missing Grounded Fact:</strong> '10mg once daily'.
+</div>
+<div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); padding:8px; border-radius:6px; font-size:0.8rem; color:#fca5a5;">
+  Fallback Returned:<br>
+  <code>"Unable to verify dosage. Consult physician."</code>
+</div>
+`;
+      }
+    }
+
+    function runCicdDemo() {
+      const res = document.getElementById('cicd-result');
+      res.innerHTML = `
+<div style="color:#ef4444; font-weight:700; font-size:0.95rem; margin-bottom:8px;">
+  ❌ PR GATE FAILED — Exit Code: 3 (Regressions Detected)
+</div>
+<div style="font-size:0.8rem; color:#cbd5e1; background:#070a13; border:1px solid var(--border); border-radius:8px; padding:12px;">
+  <div style="font-weight:700; color:#fff; margin-bottom:6px;">GitHub Step Summary & PR Comment:</div>
+  <table style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:0.75rem;">
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.1); text-align:left; color:#94a3b8;">
+      <th style="padding:4px;">Metric</th>
+      <th style="padding:4px;">Baseline</th>
+      <th style="padding:4px;">Current</th>
+      <th style="padding:4px; text-align:right;">Delta</th>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:4px;"><strong>Pass Rate</strong></td>
+      <td style="padding:4px;">100.0%</td>
+      <td style="padding:4px;">66.7%</td>
+      <td style="padding:4px; text-align:right; color:#ef4444; font-weight:700;">▼ -33.3%</td>
+    </tr>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:4px;"><strong>Avg Latency</strong></td>
+      <td style="padding:4px;">120ms</td>
+      <td style="padding:4px;">148ms</td>
+      <td style="padding:4px; text-align:right; color:#f59e0b;">▲ +28.0 ms</td>
+    </tr>
+  </table>
+  <div style="color:#ef4444; font-weight:700; margin-bottom:4px;">⚠️ Broken Test Cases (Regressions):</div>
+  <div style="color:#f87171; font-size:0.75rem;">• <code>case_refund_billing</code>: Passed in baseline, now FAILED in PR branch</div>
+  <div style="margin-top:10px; color:#94a3b8; font-size:0.75rem;">
+    Action: Pull request merge blocked until prompt regression is resolved.
+  </div>
+</div>
+`;
+    }
+
+    // Initialize initial previews
+    document.addEventListener("DOMContentLoaded", function() {
+      updateGeneratedPreview();
+      updateGuardScenario();
+    });
   </script>
 </body>
 </html>
