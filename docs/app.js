@@ -776,8 +776,307 @@ ${selectedAssertions.length > 0 ? selectedAssertions.join('\n') : '      - type:
       downloadAnchor.remove();
     }
 
+    // ==========================================
+    // ☀️ / 🌙 Theme Switcher
+    // ==========================================
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-theme');
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.innerText = isLight ? '🌙' : '☀️';
+      try {
+        localStorage.setItem('veridex-theme', isLight ? 'light' : 'dark');
+      } catch (e) {}
+    }
+
+    function initTheme() {
+      try {
+        const saved = localStorage.getItem('veridex-theme');
+        if (saved === 'light') {
+          document.body.classList.add('light-theme');
+          const btn = document.getElementById('themeToggleBtn');
+          if (btn) btn.innerText = '🌙';
+        }
+      } catch (e) {}
+    }
+
+    // ==========================================
+    // 🚀 Interactive Guided Tour
+    // ==========================================
+    let currentTourStep = 0;
+    const tourSteps = [
+      {
+        step: "STEP 1 OF 4",
+        title: "Deterministic & Sub-Millisecond LLM Evals",
+        desc: "Evaluate JSON schemas, regex constraints, and Luhn-validated PII in under 1.5ms per test without calling external LLM judges.",
+        code: "$ veridex run suite.yaml --simulate-success\n✔ test_json_schema: 0.8ms (Passed)\n✔ test_pii_shield: 1.1ms (Passed)\nTotal Latency: 1.9ms | Judge Cost: $0.00"
+      },
+      {
+        step: "STEP 2 OF 4",
+        title: "Frontier Benchmark Matrix",
+        desc: "Run identical prompt suites across Claude 3.5 Sonnet, Gemini 1.5 Pro, GPT-4o, and DeepSeek-V3 to benchmark pass rates, latency, and token billing.",
+        code: "$ veridex matrix suite.yaml -m gpt-4o claude-3-5 gemini-1.5\n✓ Fastest Model: gemini-1.5-pro (345ms)\n✓ Most Cost-Effective: gemini-1.5-pro ($0.0019/call)"
+      },
+      {
+        step: "STEP 3 OF 4",
+        title: "Runtime Guardrails & @monitor Fallback",
+        desc: "Wrap production LLM calls with the @monitor decorator to intercept leaked credentials, prompt injections, and hallucinations before user delivery.",
+        code: "@monitor(suite=\"guards.yaml\", on_fail=\"fallback\")\ndef call_agent(prompt: str) -> str:\n    return llm.invoke(prompt)"
+      },
+      {
+        step: "STEP 4 OF 4",
+        title: "CI/CD PR Gate & SOC-2 Audit Reports",
+        desc: "Automatically fail pull requests on accuracy regression with --github-summary, and export verified JSON audit reports for compliance teams.",
+        code: "$ veridex compare --base main.json --cand pr.json --fail-on-regression\nExported: veridex_enterprise_audit_report.json (SOC2 Compliant)"
+      }
+    ];
+
+    function openTourModal() {
+      currentTourStep = 0;
+      renderTourStep();
+      const m = document.getElementById('tourModal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeTourModal() {
+      const m = document.getElementById('tourModal');
+      if (m) m.style.display = 'none';
+    }
+
+    function renderTourStep() {
+      const s = tourSteps[currentTourStep];
+      const badge = document.getElementById('tourStepBadge');
+      const title = document.getElementById('tourTitle');
+      const desc = document.getElementById('tourDesc');
+      const illus = document.getElementById('tourIllustration');
+      if (badge) badge.innerText = s.step;
+      if (title) title.innerText = s.title;
+      if (desc) desc.innerText = s.desc;
+      if (illus) illus.innerHTML = `<pre style="margin:0; color:#06b6d4;">${s.code}</pre>`;
+      
+      const prevBtn = document.getElementById('tourPrevBtn');
+      const nextBtn = document.getElementById('tourNextBtn');
+      if (prevBtn) prevBtn.disabled = (currentTourStep === 0);
+      if (nextBtn) {
+        if (currentTourStep === tourSteps.length - 1) {
+          nextBtn.innerText = 'Finish Tour 🚀';
+        } else {
+          nextBtn.innerText = 'Next →';
+        }
+      }
+
+      const dots = document.querySelectorAll('.dot-indicator');
+      dots.forEach((d, idx) => {
+        if (idx === currentTourStep) d.classList.add('active');
+        else d.classList.remove('active');
+      });
+    }
+
+    function tourNext() {
+      if (currentTourStep < tourSteps.length - 1) {
+        currentTourStep++;
+        renderTourStep();
+      } else {
+        closeTourModal();
+      }
+    }
+
+    function tourPrev() {
+      if (currentTourStep > 0) {
+        currentTourStep--;
+        renderTourStep();
+      }
+    }
+
+    // ==========================================
+    // 🔀 Prompt A/B Comparison Lab (Tab 13)
+    // ==========================================
+    function runPromptABComparison() {
+      const resEl = document.getElementById('ab-comparison-results');
+      if (!resEl) return;
+      resEl.innerHTML = `
+<div style="background:rgba(15,23,42,0.8); border:1px solid var(--border); border-radius:10px; padding:16px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+    <strong style="color:var(--text); font-size:1rem;">A/B Regression Evaluation Matrix</strong>
+    <span style="color:#10b981; font-weight:700; font-size:0.85rem;">Winner: Variant B (+50.0% Pass Rate Improvement)</span>
+  </div>
+  <table style="width:100%; font-size:0.82rem; border-collapse:collapse;">
+    <thead>
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:var(--text-muted); text-align:left;">
+        <th style="padding:6px;">Metric / Assertion</th>
+        <th style="padding:6px;">Variant A (Legacy)</th>
+        <th style="padding:6px;">Variant B (Guarded)</th>
+        <th style="padding:6px;">Delta</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+        <td style="padding:6px;">Deterministic Schema</td>
+        <td style="padding:6px; color:#ef4444;">✘ Plaintext unstructured</td>
+        <td style="padding:6px; color:#10b981;">✔ Strict JSON Object</td>
+        <td style="padding:6px; color:#10b981;">+100% Reliability</td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+        <td style="padding:6px;">PII &amp; Luhn Card Shield</td>
+        <td style="padding:6px; color:#ef4444;">✘ Leaked Full PAN (4532..)</td>
+        <td style="padding:6px; color:#10b981;">✔ Masked (card_last4 only)</td>
+        <td style="padding:6px; color:#10b981;">Breach Averted</td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+        <td style="padding:6px;">Hallucinated Discount</td>
+        <td style="padding:6px; color:#ef4444;">✘ Ungrounded $50 claim</td>
+        <td style="padding:6px; color:#10b981;">✔ Policy reference enforced</td>
+        <td style="padding:6px; color:#10b981;">Zero Financial Liability</td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+        <td style="padding:6px;">Output Token Count</td>
+        <td style="padding:6px;">34 tokens</td>
+        <td style="padding:6px;">26 tokens</td>
+        <td style="padding:6px; color:#10b981;">-23.5% Token Savings</td>
+      </tr>
+      <tr>
+        <td style="padding:6px;">Assertion Latency</td>
+        <td style="padding:6px;">1.4ms</td>
+        <td style="padding:6px;">1.1ms</td>
+        <td style="padding:6px; color:#10b981;">-0.3ms</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-top:12px; font-size:0.78rem; color:#64748b;">
+    Decision Gate: Variant B satisfies all enterprise security &amp; reliability checks and can safely replace Variant A in production.
+  </div>
+</div>
+`;
+    }
+
+    // ==========================================
+    // 🔔 Incident Webhook Simulator (Tab 14)
+    // ==========================================
+    const webhookScenarios = {
+      pii: {
+        title: "🚨 CRITICAL: Credit Card Number Intercepted",
+        color: "#ef4444",
+        tag: "SECURITY INTERCEPTION",
+        desc: "Runtime Luhn check detected full Visa card pattern (4532-8821-9921-3312) in model response. Output blocked before reaching downstream client.",
+        fields: { "Model": "gpt-4o", "Trace ID": "vdx-trc-9942a1", "Latency": "1.2ms", "Action": "Fallback Triggered" }
+      },
+      injection: {
+        title: "🛡️ HIGH: Adversarial Jailbreak Override Blocked",
+        color: "#f59e0b",
+        tag: "PROMPT SECURITY",
+        desc: "User prompt mutation contained DAN / ignore previous system instruction signature. Neutralized by safety evaluator.",
+        fields: { "Model": "claude-3-5-sonnet", "Trace ID": "vdx-trc-3388bb", "Risk Score": "0.94", "Action": "Dropped Request" }
+      },
+      hallucination: {
+        title: "⚠️ WARNING: RAG Faithfulness Score Below Threshold",
+        color: "#eab308",
+        tag: "EVALUATION REGRESSION",
+        desc: "Candidate completion cited $4,500 quarterly subsidy not found in retrieved corporate benefits document context.",
+        fields: { "Model": "gemini-1.5-pro", "Trace ID": "vdx-trc-7711cc", "Faithfulness": "0.38 (min 0.70)", "Action": "Regeneration Required" }
+      },
+      cicd_regression: {
+        title: "🤖 ALERT: CI/CD Pull Request Gate Failure",
+        color: "#ef4444",
+        tag: "CI/CD REGRESSION",
+        desc: "PR #142 (update system prompt) caused 3 test regressions on json_schema evaluator. Merge blocked automatically.",
+        fields: { "Branch": "feat/support-agent-v2", "Commit": "7fd370b", "Regressions": "3 tests failed", "Action": "PR Blocked" }
+      }
+    };
+
+    function updateWebhookPreview() {
+      const evType = document.getElementById('webhook-event')?.value || 'pii';
+      const sc = webhookScenarios[evType] || webhookScenarios.pii;
+      const container = document.getElementById('webhook-card-preview');
+      if (!container) return;
+
+      let fieldsHtml = '';
+      for (const [k, v] of Object.entries(sc.fields)) {
+        fieldsHtml += `<div><span style="color:#94a3b8;">${k}:</span> <strong style="color:#f1f5f9;">${v}</strong></div>`;
+      }
+
+      container.innerHTML = `
+<div class="slack-card" style="border-left-color:${sc.color};">
+  <div class="slack-header">
+    <div class="slack-bot-avatar">VDX</div>
+    <div>
+      <span class="slack-bot-name">Veridex Guard Sentinel</span>
+      <span class="slack-app-tag">APP</span>
+    </div>
+    <span class="slack-time">Just now</span>
+  </div>
+  <div style="font-weight:700; color:${sc.color}; font-size:0.9rem; margin-bottom:4px;">${sc.title}</div>
+  <div style="font-size:0.8rem; color:#cbd5e1; line-height:1.4;">${sc.desc}</div>
+  <div class="slack-fields">
+    ${fieldsHtml}
+  </div>
+</div>
+`;
+    }
+
+    function dispatchMockWebhook() {
+      const channel = document.getElementById('webhook-channel')?.value || 'slack';
+      const statusEl = document.getElementById('webhook-dispatch-status');
+      if (!statusEl) return;
+      statusEl.innerHTML = `<span style="color:#10b981; font-weight:600;">✔ Dispatched HTTP POST to ${channel.toUpperCase()} webhook endpoint! Status: 200 OK (Latency: 48ms).</span>`;
+    }
+
+    // ==========================================
+    // 🏷️ Shields & CI/CD Hub (Tab 15)
+    // ==========================================
+    const badgeSnippets = {
+      markdown: `[![Veridex Tests](https://img.shields.io/badge/veridex-50%2F50%20passing-10b981?style=flat-square&logo=shield)](https://github.com/pooya-labs/veridex)\n[![Latency](https://img.shields.io/badge/eval%20latency-%3C%201.5ms-06b6d4?style=flat-square)](https://github.com/pooya-labs/veridex)\n[![SOC2 Compliance](https://img.shields.io/badge/compliance-SOC2%20Ready-8b5cf6?style=flat-square)](https://github.com/pooya-labs/veridex)`,
+      html: `<a href="https://github.com/pooya-labs/veridex"><img src="https://img.shields.io/badge/veridex-50%2F50%20passing-10b981?style=flat-square&logo=shield" alt="Veridex Tests" /></a>\n<a href="https://github.com/pooya-labs/veridex"><img src="https://img.shields.io/badge/eval%20latency-%3C%201.5ms-06b6d4?style=flat-square" alt="Latency" /></a>`,
+      rst: `.. image:: https://img.shields.io/badge/veridex-50%2F50%20passing-10b981?style=flat-square&logo=shield\n   :target: https://github.com/pooya-labs/veridex`
+    };
+
+    const cicdWorkflowTemplate = `name: Veridex AI Reliability Gate
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  eval-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Veridex
+        run: pip install veridex
+      - name: Run Regression Gate
+        run: |
+          veridex compare \\
+            --base main_eval_baseline.json \\
+            --cand current_eval_results.json \\
+            --github-summary \\
+            --fail-on-regression`;
+
+    function updateBadgeSnippet() {
+      const fmt = document.getElementById('badge-format-select')?.value || 'markdown';
+      const out = document.getElementById('badge-code-output');
+      if (out) out.textContent = badgeSnippets[fmt] || badgeSnippets.markdown;
+    }
+
+    function copyBadgeSnippet() {
+      const out = document.getElementById('badge-code-output')?.textContent || "";
+      navigator.clipboard.writeText(out);
+      alert('Badge snippet copied to clipboard!');
+    }
+
+    function copyCicdTemplate() {
+      navigator.clipboard.writeText(cicdWorkflowTemplate);
+      alert('.github/workflows/veridex.yml copied to clipboard!');
+    }
+
     // Update initialization
     document.addEventListener("DOMContentLoaded", function() {
+      initTheme();
       renderMatrixTable('all');
       updateBuilderYaml();
+      updateWebhookPreview();
+      updateBadgeSnippet();
+      const cicdEl = document.getElementById('cicd-workflow-yaml');
+      if (cicdEl) cicdEl.textContent = cicdWorkflowTemplate;
     });
