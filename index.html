@@ -29,6 +29,7 @@
       <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#demo">Live Demo</a>
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="theme-toggle-btn" title="Toggle Dark/Light Mode">☀️</button>
         <a href="https://github.com/pooya-labs/veridex" target="_blank" class="github-btn">
           <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
@@ -49,6 +50,7 @@
       <div class="cta-group">
         <a href="https://github.com/pooya-labs/veridex" target="_blank" class="btn-primary">View on GitHub</a>
         <a href="#demo" class="btn-secondary">Explore Interactive Demo</a>
+        <button onclick="openTourModal()" class="btn-secondary" style="border-color:var(--cyan); color:var(--cyan); font-weight:600; cursor:pointer;">🚀 Quick Tour</button>
       </div>
 
       <!-- Quick Run Card -->
@@ -65,6 +67,8 @@
         </div>
       </div>
 
+      <!-- Terminal Preview -->
+      
       <!-- Enterprise Reliability Stats Banner -->
       <div class="stats-banner">
         <div class="stat-item">
@@ -123,13 +127,16 @@
           <button class="tab-btn" onclick="switchTab('pii')">3. PII & Secret Guard</button>
           <button class="tab-btn" onclick="switchTab('injection')">4. Injection Defense</button>
           <button class="tab-btn" onclick="switchTab('fuzz')">5. Adversarial Fuzzing</button>
-          <button class="tab-btn" onclick="switchTab('studio')">6. 🏆 Benchmark Leaderboard</button>
-          <button class="tab-btn" onclick="switchTab('generate')">7. ✨ Synthetic Suite Gen</button>
-          <button class="tab-btn" onclick="switchTab('guardrails')">8. 🛡️ Runtime Guardrails</button>
+          <button class="tab-btn" onclick="switchTab('studio')">6. 🏆 Leaderboard</button>
+          <button class="tab-btn" onclick="switchTab('generate')">7. ✨ Synthetic Gen</button>
+          <button class="tab-btn" onclick="switchTab('guardrails')">8. 🛡️ Guardrails</button>
           <button class="tab-btn" onclick="switchTab('cicd')">9. 🤖 CI/CD PR Gate</button>
-          <button class="tab-btn" onclick="switchTab('custom')">10. 🧩 Custom Evaluators</button>
-          <button class="tab-btn" onclick="switchTab('roi')">11. 💰 ROI & Latency Calc</button>
-          <button class="tab-btn" onclick="switchTab('builder')">12. 🛠️ Visual Suite Builder</button>
+          <button class="tab-btn" onclick="switchTab('custom')">10. 🧩 Plugins</button>
+          <button class="tab-btn" onclick="switchTab('roi')">11. 💰 ROI & Latency</button>
+          <button class="tab-btn" onclick="switchTab('builder')">12. 🛠️ Suite Builder</button>
+          <button class="tab-btn" onclick="switchTab('diff')">13. 🔀 Prompt A/B</button>
+          <button class="tab-btn" onclick="switchTab('alert')">14. 🔔 Webhooks</button>
+          <button class="tab-btn" onclick="switchTab('badges')">15. 🏷️ Badges & Hub</button>
         </div>
 
         <!-- Tab 1: JSON -->
@@ -633,6 +640,108 @@ jobs:
             </div>
           </div>
         </div>
+
+        <!-- Tab 13: Prompt A/B Lab -->
+        <div id="tab-diff" class="tab-content">
+          <div style="margin-bottom:14px; font-size:0.88rem; color:var(--text-muted);">
+            Compare Prompt Variants side-by-side to evaluate hallucination reduction, token compression, and deterministic assertion pass rates before promoting to production.
+          </div>
+          <div class="diff-grid">
+            <div>
+              <div class="diff-header">
+                <span>Prompt Variant A (Base / Legacy)</span>
+                <span class="diff-badge-fail" id="ab-badge-a">Pass Rate: 50%</span>
+              </div>
+              <textarea id="prompt-a-text" rows="3" style="font-size:0.8rem; margin-bottom:8px;">You are a customer support agent. Answer user questions about order refunds and discounts politely.</textarea>
+              <p style="font-size:0.78rem; font-weight:600; margin-bottom:4px;">Candidate Completion A:</p>
+              <textarea id="output-a-text" rows="4" style="font-size:0.8rem;">Sure thing! Your order #9921 qualifies for a $50 instant discount and full refund to card 4532-8821-9921-3312. Have a nice day!</textarea>
+            </div>
+            <div>
+              <div class="diff-header">
+                <span>Prompt Variant B (Optimized + Veridex Guard)</span>
+                <span class="diff-badge-pass" id="ab-badge-b">Pass Rate: 100%</span>
+              </div>
+              <textarea id="prompt-b-text" rows="3" style="font-size:0.8rem; margin-bottom:8px;">You are a support agent. Never promise unverified discounts. Never output full credit card numbers. Return structured JSON with ticket_id and status.</textarea>
+              <p style="font-size:0.78rem; font-weight:600; margin-bottom:4px;">Candidate Completion B:</p>
+              <textarea id="output-b-text" rows="4" style="font-size:0.8rem;">{"ticket_id": "T-9921", "status": "review_pending", "card_last4": "3312", "notes": "Refund under review per refund policy section 4."}</textarea>
+            </div>
+          </div>
+          <button class="btn-action-primary" onclick="runPromptABComparison()">⚡ Run A/B Regression Comparison</button>
+          <div id="ab-comparison-results" style="margin-top:14px;"></div>
+        </div>
+
+        <!-- Tab 14: Incident Webhooks -->
+        <div id="tab-alert" class="tab-content">
+          <div style="margin-bottom:14px; font-size:0.88rem; color:var(--text-muted);">
+            Simulate real-time security &amp; reliability incident dispatches to Slack, Discord, Microsoft Teams, or PagerDuty when runtime guardrails intercept violations.
+          </div>
+          <div class="demo-grid">
+            <div>
+              <label style="font-size:0.8rem; font-weight:600;">Alert Channel:</label>
+              <select id="webhook-channel" style="margin-bottom:10px;">
+                <option value="slack">Slack (#genai-security-alerts)</option>
+                <option value="discord">Discord (#production-incidents)</option>
+                <option value="pagerduty">PagerDuty (GenAI On-Call High Urgency)</option>
+                <option value="http">Custom HTTP Webhook Endpoint</option>
+              </select>
+
+              <label style="font-size:0.8rem; font-weight:600;">Trigger Event Scenario:</label>
+              <select id="webhook-event" onchange="updateWebhookPreview()" style="margin-bottom:10px;">
+                <option value="pii">🚨 CRITICAL: Luhn Credit Card / PII Leakage Intercepted</option>
+                <option value="injection">🛡️ HIGH: Adversarial Jailbreak / System Prompt Override</option>
+                <option value="hallucination">⚠️ WARNING: RAG Faithfulness Score &lt; 0.65</option>
+                <option value="cicd_regression">🤖 ALERT: CI/CD Regression Gate Blocked Merge</option>
+              </select>
+
+              <button class="btn-action-primary" onclick="dispatchMockWebhook()">🚀 Dispatch Test Alert Webhook</button>
+            </div>
+            <div>
+              <p style="font-size:0.8rem; font-weight:600; margin-bottom:6px;">Live Webhook Notification Card Preview:</p>
+              <div id="webhook-card-preview"></div>
+              <div id="webhook-dispatch-status" style="margin-top:10px; font-size:0.8rem; color:var(--text-muted);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 15: Badges & Hub -->
+        <div id="tab-badges" class="tab-content">
+          <div style="margin-bottom:14px; font-size:0.88rem; color:var(--text-muted);">
+            Embed Veridex verification badges into your repository README, CI pipelines, and security compliance docs.
+          </div>
+          <div class="demo-grid">
+            <div>
+              <p style="font-size:0.8rem; font-weight:600; margin-bottom:8px;">Live Badges Preview:</p>
+              <div class="badge-preview-box">
+                <img src="https://img.shields.io/badge/veridex-50%2F50%20passing-10b981?style=flat-square&logo=shield" alt="Veridex Tests">
+                <img src="https://img.shields.io/badge/eval%20latency-%3C%201.5ms-06b6d4?style=flat-square" alt="Latency">
+                <img src="https://img.shields.io/badge/compliance-SOC2%20Ready-8b5cf6?style=flat-square" alt="SOC2">
+                <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License">
+              </div>
+
+              <label style="font-size:0.8rem; font-weight:600;">Snippet Format:</label>
+              <select id="badge-format-select" onchange="updateBadgeSnippet()" style="margin-bottom:10px;">
+                <option value="markdown">Markdown (GitHub README.md)</option>
+                <option value="html">HTML</option>
+                <option value="rst">reStructuredText (Sphinx / ReadTheDocs)</option>
+              </select>
+              <div class="code-card">
+                <pre id="badge-code-output" style="font-size:0.78rem; max-height:90px; overflow-x:auto;"></pre>
+              </div>
+              <div class="btn-action-group">
+                <button class="btn-action-secondary" onclick="copyBadgeSnippet()">📋 Copy Badge Snippet</button>
+              </div>
+            </div>
+            <div>
+              <p style="font-size:0.8rem; font-weight:600; margin-bottom:8px;">Automated GitHub Actions CI/CD Template:</p>
+              <div class="code-card">
+                <pre id="cicd-workflow-yaml" style="font-size:0.75rem; max-height:200px; overflow-y:auto;"></pre>
+              </div>
+              <div class="btn-action-group">
+                <button class="btn-action-primary" onclick="copyCicdTemplate()">📋 Copy .github/workflows/veridex.yml</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -699,6 +808,31 @@ jobs:
       </p>
     </div>
   </footer>
+
+  <!-- Interactive Guided Tour Modal -->
+  <div id="tourModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div id="tourStepBadge" class="modal-badge">STEP 1 OF 4</div>
+        <button class="modal-close-btn" onclick="closeTourModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3 id="tourTitle" class="modal-title">Deterministic &amp; Sub-Millisecond LLM Evals</h3>
+        <p id="tourDesc" class="modal-desc">Veridex evaluates JSON schemas, RAG faithfulness, and safety assertions in under 1.5ms per test without calling costly external LLM judges.</p>
+        <div id="tourIllustration" class="modal-illus"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action-secondary" id="tourPrevBtn" onclick="tourPrev()" disabled>Previous</button>
+        <div class="modal-dots" id="tourDots">
+          <span class="dot-indicator active"></span>
+          <span class="dot-indicator"></span>
+          <span class="dot-indicator"></span>
+          <span class="dot-indicator"></span>
+        </div>
+        <button class="btn-action-primary" id="tourNextBtn" onclick="tourNext()">Next →</button>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
