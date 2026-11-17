@@ -354,7 +354,7 @@ class HtmlReporter:
       }});
 
       if (filtered.length === 0) {{
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:3rem; color:var(--text-dim);">No matching cases found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:3rem; color:var(--text-dim);</td></tr>';
         return;
       }}
 
@@ -421,3 +421,4 @@ class HtmlReporter:
   </script>
 </body>
 </html>
+"""
