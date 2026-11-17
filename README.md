@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests Passing](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)](https://github.com/pooya-labs/veridex/actions)
+[![Tests Passing](https://img.shields.io/badge/tests-50%20passed-brightgreen.svg)](https://github.com/pooya-labs/veridex/actions)
 [![Docs & Live Demo](https://img.shields.io/badge/docs-interactive%20demo-cyan.svg)](https://pooya-labs.github.io/veridex/)
 
 > High-Precision Evaluation, Regression Testing & Reliability Harness for LLMs and Applied AI Systems.
@@ -216,6 +216,27 @@ def test_ai_customer_support_intent():
             {"type": "no_pii"},
         ]
     )
+```
+
+---
+
+## Custom Evaluator Plugins
+
+Register domain-specific evaluators with the `@register_evaluator` decorator and use them anywhere in YAML test suites, runtime guardrails, or programmatic checks:
+
+```python
+from veridex import register_evaluator, guard
+
+@register_evaluator("polite_tone")
+def check_polite(output: str, **kwargs) -> bool:
+    return any(p in output.lower() for p in ["please", "thank you", "kind regards"])
+
+# Use in runtime guardrails or YAML test suites
+safe_response = guard(
+    output="Thank you for reaching out! Your order has shipped.",
+    assertions=[{"type": "polite_tone"}],
+    fallback="Apologies, please contact customer care directly."
+)
 ```
 
 ---

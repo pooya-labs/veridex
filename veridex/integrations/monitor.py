@@ -23,7 +23,10 @@ def _parse_assertions(raw_assertions: List[Union[Dict[str, Any], str, Assertion]
     parsed: List[Assertion] = []
     for a in raw_assertions:
         if isinstance(a, str):
-            parsed.append(Assertion(type=AssertionType(a)))
+            try:
+                parsed.append(Assertion(type=AssertionType(a)))
+            except ValueError:
+                parsed.append(Assertion(type=a))
         elif isinstance(a, dict):
             parsed.append(Assertion.model_validate(a))
         elif isinstance(a, Assertion):

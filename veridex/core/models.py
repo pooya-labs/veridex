@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel, Field, field_validator
 
 
 class AssertionType(str, enum.Enum):
@@ -42,13 +42,23 @@ class AssertionType(str, enum.Enum):
 
 
 class Assertion(BaseModel):
-    type: AssertionType
+    type: Union[AssertionType, str]
     value: Optional[Any] = None
     threshold: float = Field(default=1.0, ge=0.0)
     rubric: Optional[str] = None
     field_path: Optional[str] = None
     weight: float = Field(default=1.0, gt=0.0)
     name: Optional[str] = None
+
+    @field_validator("type", mode="before")
+    @classmethod
+    def coerce_assertion_type(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            try:
+                return AssertionType(v)
+            except ValueError:
+                return v
+        return v
 
 
 class TestCase(BaseModel):

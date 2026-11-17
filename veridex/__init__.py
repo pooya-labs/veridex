@@ -21,7 +21,7 @@ from veridex.core.fuzzer import SuiteFuzzer
 from veridex.core.generator import SuiteGenerator
 from veridex.core.html_reporter import HtmlReporter
 from veridex.loaders.yaml_loader import SuiteLoader
-from veridex.evaluators import EvaluatorRegistry
+from veridex.evaluators import EvaluatorRegistry, register_evaluator
 from veridex.providers import get_provider, BaseProvider, MockProvider
 from veridex.server import run_studio_server
 from veridex.sdk import assert_eval
@@ -53,6 +53,7 @@ __all__ = [
     "HtmlReporter",
     "SuiteLoader",
     "EvaluatorRegistry",
+    "register_evaluator",
     "get_provider",
     "BaseProvider",
     "MockProvider",
