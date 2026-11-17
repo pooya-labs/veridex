@@ -12,6 +12,13 @@
 </head>
 <body>
 
+  <!-- Top Enterprise Announcement -->
+  <div class="top-announcement">
+    <span class="top-badge">NEW IN V0.2.0</span>
+    <span>Custom Evaluator Plugins (<code>@register_evaluator</code>) &amp; OpenTelemetry GenAI Observability released!</span>
+    <button onclick="exportEnterpriseAuditReport()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); color:#fff; padding:3px 10px; border-radius:6px; font-size:0.72rem; cursor:pointer; margin-left:8px; font-weight:600;">📄 Export SOC-2 Audit</button>
+  </div>
+
   <header>
     <div class="container nav">
       <a href="#" class="logo">
@@ -118,12 +125,13 @@
           <button class="tab-btn" onclick="switchTab('pii')">3. PII & Secret Guard</button>
           <button class="tab-btn" onclick="switchTab('injection')">4. Injection Defense</button>
           <button class="tab-btn" onclick="switchTab('fuzz')">5. Adversarial Fuzzing</button>
-          <button class="tab-btn" onclick="switchTab('studio')">6. Enterprise Studio</button>
+          <button class="tab-btn" onclick="switchTab('studio')">6. 🏆 Benchmark Leaderboard</button>
           <button class="tab-btn" onclick="switchTab('generate')">7. ✨ Synthetic Suite Gen</button>
           <button class="tab-btn" onclick="switchTab('guardrails')">8. 🛡️ Runtime Guardrails</button>
           <button class="tab-btn" onclick="switchTab('cicd')">9. 🤖 CI/CD PR Gate</button>
           <button class="tab-btn" onclick="switchTab('custom')">10. 🧩 Custom Evaluators</button>
           <button class="tab-btn" onclick="switchTab('roi')">11. 💰 ROI & Latency Calc</button>
+          <button class="tab-btn" onclick="switchTab('builder')">12. 🛠️ Visual Suite Builder</button>
         </div>
 
         <!-- Tab 1: JSON -->
@@ -242,55 +250,49 @@ Fuzzing Modes Applied:
           </div>
         </div>
 
-        <!-- Tab 6: Enterprise Studio UI -->
+        <!-- Tab 6: 🏆 Frontier Model Benchmark Leaderboard -->
         <div id="tab-studio" class="tab-content">
           <div style="background:#0c1019; border:1px solid var(--border); border-radius:12px; padding:24px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
               <div>
-                <span style="font-weight:800; font-size:1.15rem; color:#fff;">Veridex Enterprise Studio</span>
-                <span style="background:rgba(6,182,212,0.15); color:var(--cyan); border:1px solid rgba(6,182,212,0.3); padding:2px 8px; border-radius:9999px; font-size:0.75rem; margin-left:8px; font-weight:700;">Live Web Dashboard</span>
+                <span style="font-weight:800; font-size:1.15rem; color:#fff;">Frontier LLM Reliability Benchmark Leaderboard</span>
+                <span style="background:rgba(6,182,212,0.15); color:var(--cyan); border:1px solid rgba(6,182,212,0.3); padding:2px 8px; border-radius:9999px; font-size:0.75rem; margin-left:8px; font-weight:700;">Live Evaluator Matrix</span>
               </div>
-              <div class="mono" style="font-size:0.8rem; color:var(--text-muted); background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:6px;">
-                Run locally: <span style="color:var(--cyan); font-weight:600;">veridex serve --port 8080</span>
-              </div>
-            </div>
-
-            <!-- Mini Studio Mockup -->
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:16px;">
-              <div style="background:#111827; border:1px solid var(--border); border-radius:8px; padding:12px;">
-                <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Pass Rate</div>
-                <div style="font-size:1.4rem; font-weight:800; color:var(--green); margin-top:4px;">100.0%</div>
-                <div style="font-size:0.75rem; color:var(--green);">Production Ready</div>
-              </div>
-              <div style="background:#111827; border:1px solid var(--border); border-radius:8px; padding:12px;">
-                <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Test Cases</div>
-                <div style="font-size:1.4rem; font-weight:800; color:#fff; margin-top:4px;">15 / 15</div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">0 regressions</div>
-              </div>
-              <div style="background:#111827; border:1px solid var(--border); border-radius:8px; padding:12px;">
-                <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">P95 Latency</div>
-                <div style="font-size:1.4rem; font-weight:800; color:#fff; margin-top:4px;">32.6ms</div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">Async bounded</div>
-              </div>
-              <div style="background:#111827; border:1px solid var(--border); border-radius:8px; padding:12px;">
-                <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Token Cost</div>
-                <div style="font-size:1.4rem; font-weight:800; color:#fff; margin-top:4px;">$0.0004</div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">480 tokens</div>
+              <div style="display:flex; gap:8px;">
+                <button class="matrix-filter-btn" onclick="filterMatrix('all', this)" style="background:var(--cyan); color:#0b0f19; border:none; padding:5px 14px; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer;">All Models</button>
+                <button class="matrix-filter-btn" onclick="filterMatrix('frontier', this)" style="background:#1e293b; color:#94a3b8; border:1px solid var(--border); padding:5px 14px; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">Frontier APIs</button>
+                <button class="matrix-filter-btn" onclick="filterMatrix('open', this)" style="background:#1e293b; color:#94a3b8; border:1px solid var(--border); padding:5px 14px; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">Open Weights</button>
               </div>
             </div>
 
-            <div style="background:#070a13; border:1px solid var(--border); border-radius:8px; padding:16px; font-size:0.85rem;">
-              <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
-                <span style="font-weight:700; color:#fff;">Live Capabilities Active in Studio:</span>
-                <span style="color:var(--cyan); font-weight:600;">5 Modular Tabs</span>
+            <div style="overflow-x:auto;">
+              <table class="matrix-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Model / Provider</th>
+                    <th>Pass Rate</th>
+                    <th>P95 Latency</th>
+                    <th>Cost / 1K Evals</th>
+                    <th>Hallucination</th>
+                    <th>PII Shield</th>
+                  </tr>
+                </thead>
+                <tbody id="matrix-table-body">
+                  <!-- Rendered dynamically by app.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.06);">
+              <div id="matrix-live-status" style="font-size:0.8rem; color:#94a3b8;">
+                Evaluated against 15 calibrated schema, RAG &amp; injection assertions per model.
               </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div>• <strong>🚀 Evaluation Runner:</strong> Live filtering, case search, failure diagnostics</div>
-                <div>• <strong>🏆 Matrix Leaderboard:</strong> Multi-model head-to-head comparison</div>
-                <div>• <strong>⚡ Adversarial Fuzzer:</strong> Typo, casing, noise, and jailbreak stress lab</div>
-                <div>• <strong>📝 YAML Suite Studio:</strong> In-browser test authoring with instant validation</div>
-                <div>• <strong>⚖️ Regression Diff:</strong> Delta comparison between baseline and candidate runs</div>
-                <div>• <strong>📤 1-Click Export:</strong> GitHub PR Markdown, standalone HTML, raw JSON</div>
+              <div style="display:flex; gap:10px;">
+                <button class="btn-action-primary" onclick="simulateLiveBenchmark()">Run Live Benchmark Simulation</button>
+                <div class="mono" style="font-size:0.8rem; color:var(--text-muted); background:rgba(255,255,255,0.06); padding:8px 12px; border-radius:6px;">
+                  CLI: <span style="color:var(--cyan); font-weight:600;">veridex matrix suite.yaml -m gpt-4o,gemini-1.5</span>
+                </div>
               </div>
             </div>
           </div>
@@ -539,6 +541,96 @@ jobs:
                   <div style="font-size:1.3rem; font-weight:800; color:#c084fc; margin:4px 0;">1.2ms <span style="font-size:0.85rem; color:#94a3b8; font-weight:400;">vs 850ms (99.8% speedup)</span></div>
                   <div style="font-size:0.75rem; color:#d8b4fe;">Zero extra API calls or rate-limit lockouts in production</div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 12: Visual Suite Builder & Exporter -->
+        <div id="tab-builder" class="tab-content">
+          <div style="background:#0c1019; border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+              <div>
+                <span style="font-weight:700; color:#fff; font-size:1.05rem;">Visual Test Suite Builder &amp; Instant Exporter</span>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-top:4px;">Configure tests visually, select assertions, and export production YAML or run simulations immediately.</p>
+              </div>
+              <button onclick="exportEnterpriseAuditReport()" class="btn-action-secondary" style="font-size:0.75rem;">
+                📄 Export Full Audit Report (JSON)
+              </button>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:14px;">
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">SUITE NAME</label>
+                <input id="builder-name" type="text" value="Enterprise Support Agent Reliability" class="demo-textarea" style="height:38px; padding:8px 12px;" oninput="updateBuilderYaml()">
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">PROVIDER</label>
+                <select id="builder-provider" class="demo-textarea" style="height:38px; padding:6px 10px;" onchange="updateBuilderYaml()">
+                  <option value="gemini" selected>Google Gemini</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="ollama">Ollama (Local)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">MODEL IDENTIFIER</label>
+                <input id="builder-model" type="text" value="gemini-1.5-pro" class="demo-textarea" style="height:38px; padding:8px 12px;" oninput="updateBuilderYaml()">
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">TEST CASE PROMPT</label>
+              <textarea id="builder-prompt" class="demo-textarea" rows="2" oninput="updateBuilderYaml()">Extract ticket ID, category, and urgency from customer refund request.</textarea>
+            </div>
+
+            <div style="margin-top:14px;">
+              <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:6px; font-weight:600;">SELECT RELIABILITY ASSERTIONS</label>
+              <div class="check-grid">
+                <div class="check-card checked" onclick="toggleBuilderCheck(this)">
+                  <input type="checkbox" class="builder-assert-cb" value="valid_json" checked>
+                  <span><code>valid_json</code> (Strict Syntax)</span>
+                </div>
+                <div class="check-card checked" onclick="toggleBuilderCheck(this)">
+                  <input type="checkbox" class="builder-assert-cb" value="json_schema" checked>
+                  <span><code>json_schema</code> (Required Keys)</span>
+                </div>
+                <div class="check-card checked" onclick="toggleBuilderCheck(this)">
+                  <input type="checkbox" class="builder-assert-cb" value="no_pii" checked>
+                  <span><code>no_pii</code> (Luhn CC / Email)</span>
+                </div>
+                <div class="check-card checked" onclick="toggleBuilderCheck(this)">
+                  <input type="checkbox" class="builder-assert-cb" value="no_secrets" checked>
+                  <span><code>no_secrets</code> (API Keys)</span>
+                </div>
+                <div class="check-card" onclick="toggleBuilderCheck(this)">
+                  <input type="checkbox" class="builder-assert-cb" value="faithfulness">
+                  <span><code>faithfulness</code> (RAG Grounding)</span>
+                </div>
+                <div class="check-card checked" onclick="toggleBuilderCheck(this)">
+                  <input type="checkbox" class="builder-assert-cb" value="no_prompt_injection" checked>
+                  <span><code>no_prompt_injection</code> (Jailbreak)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="demo-grid">
+            <div>
+              <p style="margin-bottom:8px; font-weight:600;">Generated YAML Suite (Live Preview):</p>
+              <div class="code-card">
+                <pre id="builder-yaml-output" style="max-height:280px; overflow-y:auto;"></pre>
+              </div>
+              <div class="btn-action-group">
+                <button class="btn-action-primary" onclick="downloadYamlSuite()">📥 Download suite.yaml</button>
+                <button class="btn-action-secondary" onclick="copyBuilderYaml()">📋 Copy YAML</button>
+                <button class="btn-action-secondary" onclick="runBuilderSimulation()">⚡ Simulate Run</button>
+              </div>
+            </div>
+            <div>
+              <p style="margin-bottom:8px; font-weight:600;">Builder Verification &amp; Simulation Results:</p>
+              <div class="code-card" id="builder-sim-result" style="color:var(--text-muted); min-height:280px;">
+                Click "Simulate Run" to execute this visual test suite against simulated model outputs.
               </div>
             </div>
           </div>
