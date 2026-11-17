@@ -454,3 +454,153 @@
       padding: 14px 16px;
       margin-bottom: 12px;
     }
+
+    /* Top Announcement Bar */
+    .top-announcement {
+      background: linear-gradient(90deg, rgba(6, 182, 212, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
+      border-bottom: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 8px 16px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+    .top-badge {
+      background: var(--cyan);
+      color: #0b0f19;
+      font-weight: 800;
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Leaderboard Matrix Table */
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 14px;
+    }
+    .matrix-table th {
+      background: #111827;
+      color: #94a3b8;
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .matrix-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+      vertical-align: middle;
+    }
+    .matrix-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .rank-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+    .rank-1 { background: rgba(234, 179, 8, 0.15); color: #fbbf24; border: 1px solid rgba(234, 179, 8, 0.4); }
+    .rank-2 { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
+    .rank-3 { background: rgba(217, 119, 6, 0.15); color: #f59e0b; border: 1px solid rgba(217, 119, 6, 0.4); }
+    .rank-other { background: rgba(255, 255, 255, 0.05); color: #64748b; }
+
+    .tag-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .tag-accuracy { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .tag-speed { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+    .tag-value { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+
+    /* Visual Suite Builder */
+    .builder-controls {
+      background: #0c1019;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .check-card {
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .check-card:hover {
+      border-color: rgba(6, 182, 212, 0.5);
+    }
+    .check-card.checked {
+      background: rgba(6, 182, 212, 0.1);
+      border-color: var(--cyan);
+      color: #fff;
+    }
+    .check-card input[type="checkbox"] {
+      accent-color: var(--cyan);
+    }
+
+    .btn-action-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .btn-action-primary {
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
+      color: #0b0f19;
+      font-weight: 700;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-action-primary:hover {
+      opacity: 0.9;
+    }
+    .btn-action-secondary {
+      background: #1e293b;
+      color: #f1f5f9;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-action-secondary:hover {
+      background: #334155;
+    }
