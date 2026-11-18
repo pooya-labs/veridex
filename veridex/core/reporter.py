@@ -138,3 +138,40 @@ class MarkdownReporter:
 
         lines.append("")
         return "\n".join(lines)
+
+
+class JunitReporter:
+    """Generates standard JUnit XML reports for Jenkins, GitLab CI, GitHub Actions, and Azure DevOps."""
+
+    @staticmethod
+    def generate(result: SuiteResult) -> str:
+        import html
+        total_time_sec = sum(c.latency_ms for c in result.results) / 1000.0
+        lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            f'<testsuites name="Veridex" tests="{result.total_cases}" failures="{result.failed_cases}" errors="0" time="{total_time_sec:.3f}">',
+            f'  <testsuite name="{html.escape(result.suite_name)}" tests="{result.total_cases}" failures="{result.failed_cases}" errors="0" time="{total_time_sec:.3f}" timestamp="{result.timestamp}">',
+        ]
+        for case in result.results:
+            case_time = case.latency_ms / 1000.0
+            lines.append(f'    <testcase classname="{html.escape(result.suite_name)}" name="{html.escape(case.case_name)}" time="{case_time:.3f}">')
+            if not case.passed:
+                failed_assertions = [a for a in case.assertion_results if not a.passed]
+                fail_msgs = "; ".join(a.message for a in failed_assertions)
+                lines.append(f'      <failure message="{html.escape(fail_msgs)}">')
+                lines.append(f'Input: {html.escape(case.input_prompt)}')
+                lines.append(f'Output: {html.escape(case.output)}')
+                for fa in failed_assertions:
+                    lines.append(f'Assertion [{html.escape(str(fa.assertion_type))}]: {html.escape(fa.message)}')
+                lines.append('      </failure>')
+            lines.append('    </testcase>')
+        lines.append('  </testsuite>')
+        lines.append('</testsuites>')
+        return "\n".join(lines)
+
+    @classmethod
+    def save(cls, result: SuiteResult, output_path: Union[str, Path]) -> None:
+        path = Path(output_path).resolve()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(cls.generate(result))
