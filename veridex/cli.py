@@ -31,6 +31,7 @@ def create_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("-o", "--output-json", type=str, help="Path to export JSON results.")
     run_parser.add_argument("-m", "--output-md", type=str, help="Path to export Markdown report.")
     run_parser.add_argument("-H", "--output-html", type=str, help="Path to export interactive HTML dashboard report.")
+    run_parser.add_argument("-J", "--output-junit", type=str, help="Path to export JUnit XML test report.")
     run_parser.add_argument("-p", "--provider", type=str, help="Override provider (e.g. mock, openai, gemini, http).")
     run_parser.add_argument("-u", "--endpoint-url", type=str, help="Endpoint URL when using HTTP/webhook provider.")
     run_parser.add_argument("--model", type=str, help="Override model name.")
@@ -128,6 +129,11 @@ def handle_run(args: argparse.Namespace, console: Console) -> int:
     if args.output_html:
         HtmlReporter.export(result, args.output_html)
         console.print(f"[green]Saved Interactive HTML report to:[/green] {args.output_html}")
+
+    if getattr(args, "output_junit", None):
+        from veridex.core.reporter import JunitReporter
+        JunitReporter.save(result, args.output_junit)
+        console.print(f"[green]Saved JUnit XML report to:[/green] {args.output_junit}")
 
     return 0 if result.passed_cases == result.total_cases else 2
 
