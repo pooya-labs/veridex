@@ -145,3 +145,28 @@ def test_cli_compare_with_markdown_export(tmp_path: Path):
     md_text = md_out.read_text(encoding="utf-8")
     assert "Veridex LLM Evaluation & Regression Diff" in md_text
     assert "Regressions Detected" in md_text
+
+
+def test_cli_run_junit_export(tmp_path: Path):
+    from veridex.cli import handle_run
+    console = Console(record=True)
+    junit_out = tmp_path / "junit_report.xml"
+    args = argparse.Namespace(
+        suite="examples/01_structured_extraction/suite.yaml",
+        output_json=None,
+        output_md=None,
+        output_html=None,
+        output_junit=str(junit_out),
+        provider="mock",
+        endpoint_url=None,
+        model=None,
+        concurrency=1,
+        simulate_success=True,
+    )
+    ret = handle_run(args, console)
+    assert ret == 0
+    assert junit_out.exists()
+    content = junit_out.read_text(encoding="utf-8")
+    assert '<?xml version="1.0" encoding="UTF-8"?>' in content
+    assert '<testsuites' in content
+    assert '<testsuite' in content
