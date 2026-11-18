@@ -885,3 +885,88 @@
       flex-wrap: wrap;
       margin-bottom: 14px;
     }
+
+    /* OWASP Top 10 Cards */
+    .owasp-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .owasp-card:hover {
+      border-color: rgba(6, 182, 212, 0.4);
+      transform: translateY(-2px);
+    }
+    .owasp-code {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--cyan);
+      letter-spacing: 0.05em;
+    }
+    .owasp-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 4px 0;
+    }
+    .owasp-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .owasp-badge-critical {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .owasp-badge-high {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .owasp-badge-medium {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .owasp-shield {
+      font-size: 0.72rem;
+      color: #10b981;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    [data-theme="light"] .owasp-card {
+      background: #ffffff;
+      border-color: #cbd5e1;
+    }
+    [data-theme="light"] .owasp-title {
+      color: #0f172a;
+    }
+    [data-theme="light"] .radar-card-wrapper {
+      background: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+    }
+    [data-theme="light"] .radar-card-wrapper text {
+      fill: #334155 !important;
+    }
