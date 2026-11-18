@@ -137,6 +137,9 @@
           <button class="tab-btn" onclick="switchTab('diff')">13. 🔀 Prompt A/B</button>
           <button class="tab-btn" onclick="switchTab('alert')">14. 🔔 Webhooks</button>
           <button class="tab-btn" onclick="switchTab('badges')">15. 🏷️ Badges & Hub</button>
+          <button class="tab-btn" onclick="switchTab('owasp')">16. 🛡️ OWASP 10</button>
+          <button class="tab-btn" onclick="switchTab('playground')">17. ⚡ Playground</button>
+          <button class="tab-btn" onclick="switchTab('reports')">18. 📑 CI Reports</button>
         </div>
 
         <!-- Tab 1: JSON -->
@@ -267,6 +270,18 @@ Fuzzing Modes Applied:
                 <button class="matrix-filter-btn" onclick="filterMatrix('all', this)" style="background:var(--cyan); color:#0b0f19; border:none; padding:5px 14px; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer;">All Models</button>
                 <button class="matrix-filter-btn" onclick="filterMatrix('frontier', this)" style="background:#1e293b; color:#94a3b8; border:1px solid var(--border); padding:5px 14px; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">Frontier APIs</button>
                 <button class="matrix-filter-btn" onclick="filterMatrix('open', this)" style="background:#1e293b; color:#94a3b8; border:1px solid var(--border); padding:5px 14px; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">Open Weights</button>
+              </div>
+            </div>
+
+            <!-- Multi-Dimensional Reliability Radar Chart -->
+            <div class="radar-card-wrapper" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; background:#080c14; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:16px; margin-bottom:16px;">
+              <div style="flex:1; min-width:260px;">
+                <div style="font-size:0.95rem; font-weight:800; color:#fff; margin-bottom:4px;">Multi-Dimensional Reliability Radar</div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Visualizing 5 frontier models across 6 critical operational vectors. Hover or click models below to highlight.</div>
+                <div id="radar-legend" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+              </div>
+              <div style="display:flex; justify-content:center; align-items:center; min-width:280px; flex:1;">
+                <svg id="benchmark-radar-chart" viewBox="0 0 320 280" style="width:100%; max-width:320px; height:auto; overflow:visible;"></svg>
               </div>
             </div>
 
@@ -738,6 +753,133 @@ jobs:
               </div>
               <div class="btn-action-group">
                 <button class="btn-action-primary" onclick="copyCicdTemplate()">📋 Copy .github/workflows/veridex.yml</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 16: OWASP LLM Top 10 Security Audit -->
+        <div id="tab-owasp" class="tab-content">
+          <div style="background:#0c1019; border:1px solid var(--border); border-radius:12px; padding:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+              <div>
+                <span style="font-weight:800; font-size:1.15rem; color:#fff;">OWASP Top 10 for LLM Applications — Enterprise Security Audit</span>
+                <span style="background:rgba(16,185,129,0.15); color:var(--green); border:1px solid rgba(16,185,129,0.3); padding:2px 8px; border-radius:9999px; font-size:0.75rem; margin-left:8px; font-weight:700;">OWASP 2025/2026 Ready</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="matrix-filter-btn" onclick="filterOwasp('all', this)" style="background:var(--cyan); color:#0b0f19; border:none; padding:5px 12px; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer;">All (10)</button>
+                <button class="matrix-filter-btn" onclick="filterOwasp('critical', this)" style="background:#1e293b; color:#94a3b8; border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">Critical (4)</button>
+                <button class="matrix-filter-btn" onclick="filterOwasp('high', this)" style="background:#1e293b; color:#94a3b8; border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">High (4)</button>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap:12px; margin-bottom:18px;" id="owasp-cards-container">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.06);">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:36px; height:36px; border-radius:8px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); display:flex; align-items:center; justify-content:center; color:var(--green); font-weight:800; font-size:1.1rem;">A+</div>
+                <div>
+                  <div style="font-size:0.85rem; font-weight:700; color:#fff;" id="owasp-audit-score">Overall Security Score: 98.4% (Certified)</div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">10/10 attack vectors shielded with active Veridex evaluators</div>
+                </div>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <button class="btn-action-primary" onclick="runOwaspPenetrationAudit()">🚀 Run Complete OWASP Penetration Audit</button>
+                <button class="btn-action-secondary" onclick="exportOwaspAuditReport()">⬇️ Export OWASP Report (JSON)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 17: Live In-Browser Evaluator Sandbox -->
+        <div id="tab-playground" class="tab-content">
+          <div style="background:#0c1019; border:1px solid var(--border); border-radius:12px; padding:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+              <div>
+                <span style="font-weight:800; font-size:1.15rem; color:#fff;">Live In-Browser LLM Evaluation &amp; Inference Sandbox</span>
+                <span style="background:rgba(6,182,212,0.15); color:var(--cyan); border:1px solid rgba(6,182,212,0.3); padding:2px 8px; border-radius:9999px; font-size:0.75rem; margin-left:8px; font-weight:700;">Client-Side Execution</span>
+              </div>
+              <div style="font-size:0.75rem; color:#64748b;">Zero backend needed • Direct browser-to-API inference</div>
+            </div>
+
+            <div class="demo-grid">
+              <div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                  <div>
+                    <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">PROVIDER / ENGINE</label>
+                    <select id="play-provider" onchange="updatePlaygroundProvider()" style="width:100%; background:#111827; color:#fff; border:1px solid var(--border); padding:7px 10px; border-radius:6px; font-size:0.8rem;">
+                      <option value="mock">In-Browser Simulated LLM (No Key Required)</option>
+                      <option value="groq">Groq Cloud (Llama 3.3 70B)</option>
+                      <option value="openai">OpenAI (GPT-4o-mini)</option>
+                      <option value="ollama">Local Ollama (localhost:11434)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">API KEY (Optional / In-Memory)</label>
+                    <input type="password" id="play-apikey" placeholder="sk-... (held in memory only)" style="width:100%; background:#111827; color:#fff; border:1px solid var(--border); padding:7px 10px; border-radius:6px; font-size:0.8rem;">
+                  </div>
+                </div>
+
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">INPUT PROMPT</label>
+                <textarea id="play-prompt" class="demo-textarea" rows="3" style="margin-bottom:10px;">Extract invoice payload as JSON: Customer Jane Doe (jane@corp.net) paid $420.00 on 2026-11-18 for Cloud Hosting.</textarea>
+
+                <div style="margin-bottom:10px;">
+                  <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600;">ACTIVE VERIDEX ASSERTIONS</label>
+                  <div style="display:flex; flex-wrap:wrap; gap:8px; font-size:0.75rem;">
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" id="chk-valid-json" checked> <code>valid_json</code></label>
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" id="chk-no-pii" checked> <code>no_pii</code></label>
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" id="chk-no-jailbreak" checked> <code>no_jailbreak</code></label>
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" id="chk-max-latency" checked> <code>latency &lt; 2000ms</code></label>
+                  </div>
+                </div>
+
+                <button class="run-demo-btn" onclick="executeLivePlayground()" id="btn-play-run">⚡ Execute Live In-Browser Eval</button>
+              </div>
+
+              <div>
+                <p style="margin-bottom:8px; font-weight:600;">Live Inference Diagnostics &amp; Assertions:</p>
+                <div class="code-card" id="play-result-box" style="min-height:240px; font-size:0.8rem; color:var(--text-muted);">
+                  Click "Execute Live In-Browser Eval" to run candidate inference through the client-side Veridex assertion harness.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 18: JUnit XML & CI/CD Reports Hub -->
+        <div id="tab-reports" class="tab-content">
+          <div style="background:#0c1019; border:1px solid var(--border); border-radius:12px; padding:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+              <div>
+                <span style="font-weight:800; font-size:1.15rem; color:#fff;">Enterprise CI/CD Test Reports &amp; JUnit XML Hub</span>
+                <span style="background:rgba(139,92,246,0.15); color:#a78bfa; border:1px solid rgba(139,92,246,0.3); padding:2px 8px; border-radius:9999px; font-size:0.75rem; margin-left:8px; font-weight:700;">Standard Formats</span>
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Compatible with Jenkins, GitLab CI, GitHub Actions &amp; Azure DevOps</div>
+            </div>
+
+            <div class="demo-grid">
+              <div>
+                <p style="font-size:0.8rem; font-weight:600; margin-bottom:8px;">Standard JUnit XML Test Report (report.xml):</p>
+                <div class="code-card">
+                  <pre id="junit-xml-preview" style="font-size:0.75rem; max-height:220px; overflow-y:auto;"></pre>
+                </div>
+                <div class="btn-action-group" style="margin-top:10px;">
+                  <button class="btn-action-primary" onclick="downloadJunitXml()">⬇️ Download JUnit XML (report.xml)</button>
+                  <button class="btn-action-secondary" onclick="copyJunitXml()">📋 Copy XML</button>
+                </div>
+              </div>
+
+              <div>
+                <p style="font-size:0.8rem; font-weight:600; margin-bottom:8px;">Tabular CSV Benchmark Summary (results.csv):</p>
+                <div class="code-card">
+                  <pre id="csv-summary-preview" style="font-size:0.75rem; max-height:220px; overflow-y:auto;"></pre>
+                </div>
+                <div class="btn-action-group" style="margin-top:10px;">
+                  <button class="btn-action-primary" onclick="downloadCsvSummary()">⬇️ Download CSV (results.csv)</button>
+                  <button class="btn-action-secondary" onclick="copyCsvSummary()">📋 Copy CSV</button>
+                </div>
               </div>
             </div>
           </div>
